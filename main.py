@@ -1,9 +1,10 @@
 import pygame
 import sys
 import math
+import copy
 
 
-def verifica_oi(listaOi):
+def numara_oi_in_patrat(listaOi):
     """
     functie care verifica daca 9 oi au ajuns in patratul de sus
     :param listaOi:
@@ -14,9 +15,7 @@ def verifica_oi(listaOi):
         oaie = ((x[0] - Graph.translatie) // Graph.scalare, (x[1] - Graph.translatie) // Graph.scalare)
         if oaie in Graph.noduri[:6] + Graph.noduri[8:11]:
             nr += 1
-    if nr == 9:
-        return True
-    return False
+    return nr
 
 
 class Joc:
@@ -66,12 +65,10 @@ class Joc:
 
     # pygame.display.update()
 '''
-    def __init__(self):
-        self.noduri = Graph.noduri
-        self.muchii = Graph.muchii
-        self.pieseOi = [[x * Graph.scalare + Graph.translatie, y * Graph.scalare + Graph.translatie] for (x, y) in
+    def __init__(self, pieseOi = None, pieseVulpi = None):
+        self.pieseOi = pieseOi or [[x * Graph.scalare + Graph.translatie, y * Graph.scalare + Graph.translatie] for (x, y) in
                    Graph.noduri[13:]]
-        self.pieseVulpi = [[220, 20], [420, 20]]
+        self.pieseVulpi = pieseVulpi or [[220, 20], [420, 20]]
 
 
     @classmethod
@@ -79,33 +76,83 @@ class Joc:
         return cls.JMAX if jucator == cls.JMIN else cls.JMIN
 
     def final(self):
-        rez = len(self.pieseOi) < 9 or verifica_oi(self.pieseOi)
+        rez = len(self.pieseOi) < 9 or numara_oi_in_patrat(self.pieseOi) == 9
         if rez:
             return rez
         else:
             return False
 
+    #TODO: testeaza functia de mutari
     def mutari(self, jucator_opus):
-        l_mutari = []
-        for i in range(len(self.matr)):
-            if self.matr[i] == self.__class__.GOL:
-                matr_tabla_noua = list(self.matr)
-                matr_tabla_noua[i] = jucator_opus
-                l_mutari.append(Joc(matr_tabla_noua))
-        return l_mutari
+        l_mutari_oi = []
+        l_mutari_vulpi = []
+        if jucator_opus == 'O':
+            for x in self.pieseOi:
+                oaie = ((x[0] - Graph.translatie) // Graph.scalare, (x[1] - Graph.translatie) // Graph.scalare)
+                index_punct_oaie = Graph.noduri.index(oaie)
+                for muchie in Graph.muchii:
+                    if muchie[0] == index_punct_oaie:
+                        nod = [Graph.noduri[muchie[1]][0] * Graph.scalare + Graph.translatie, Graph.noduri[muchie[1]][1] * Graph.scalare + Graph.translatie]
+                        if muchie[1] - 2 < muchie[0] and nod not in self.pieseOi + self.pieseVulpi:
+                            lista_oi_noua = copy.deepcopy(self.pieseOi)
+                            lista_oi_noua.remove(x)
+                            lista_oi_noua.append(nod)
+                            l_mutari_oi.append(lista_oi_noua)
+                    elif muchie[1] == index_punct_oaie:
+                        nod = [Graph.noduri[muchie[0]][0] * Graph.scalare + Graph.translatie, Graph.noduri[muchie[0]][1] * Graph.scalare + Graph.translatie]
+                        if muchie[0] - 2 < muchie[1] and nod not in self.pieseOi + self.pieseVulpi:
+                            lista_oi_noua = copy.deepcopy(self.pieseOi)
+                            lista_oi_noua.remove(x)
+                            lista_oi_noua.append(nod)
+                            l_mutari_oi.append(lista_oi_noua)
+        elif jucator_opus == 'V':
+            for x in self.pieseVulpi:
+                vulpe = ((x[0] - Graph.translatie) // Graph.scalare, (x[1] - Graph.translatie) // Graph.scalare)
+                index_punct_vulpe = Graph.noduri.index(vulpe)
+                for muchie in Graph.muchii:
+                    nod = None
+                    if muchie[0] == index_punct_vulpe:
+                        nod = [Graph.noduri[muchie[1]][0] * Graph.scalare + Graph.translatie, Graph.noduri[muchie[1]][1] * Graph.scalare + Graph.translatie]
+                    elif muchie[1] == index_punct_vulpe:
+                        nod = [Graph.noduri[muchie[0]][0] * Graph.scalare + Graph.translatie, Graph.noduri[muchie[0]][1] * Graph.scalare + Graph.translatie]
+                    if nod is not None and nod not in self.pieseOi + self.pieseVulpi:
+                        lista_vulpi_noua = copy.deepcopy(self.pieseVulpi)
+                        lista_vulpi_noua.remove(x)
+                        lista_vulpi_noua.append(nod)
+                        l_mutari_vulpi.append(lista_vulpi_noua)
+                    elif nod is not None and nod in self.pieseOi:
+                        oaie = ((nod[0] - Graph.translatie) // Graph.scalare, (nod[1] - Graph.translatie) // Graph.scalare)
+                        index_punct_oaie = Graph.noduri.index(oaie)
+                        for muchie2 in Graph.muchii:
+                            if muchie2[0] == index_punct_oaie:
+                                nod2 = [Graph.noduri[muchie[1]][0] * Graph.scalare + Graph.translatie,
+                                       Graph.noduri[muchie[1]][1] * Graph.scalare + Graph.translatie]
+                            elif muchie2[1] == index_punct_oaie:
+                                nod2 = [Graph.noduri[muchie[0]][0] * Graph.scalare + Graph.translatie,
+                                       Graph.noduri[muchie[0]][1] * Graph.scalare + Graph.translatie]
+                            if nod2 not in self.pieseOi + self.pieseVulpi:
+                                lista_oi_noua = copy.deepcopy(self.pieseOi)
+                                lista_oi_noua.remove(nod)
+                                l_mutari_oi.append(lista_oi_noua)
+                                lista_vulpi_noua = copy.deepcopy(self.pieseVulpi)
+                                lista_vulpi_noua.remove(x)
+                                lista_vulpi_noua.append(nod2)
+                                l_mutari_vulpi.append(lista_vulpi_noua)
 
+
+        return l_mutari_oi, l_mutari_vulpi
 
     def estimeaza_scor(self, adancime):
         t_final = self.final()
         # if (adancime==0):
         if t_final == self.__class__.JMAX:
-            return (99 + adancime)
+            return 99 + adancime
         elif t_final == self.__class__.JMIN:
-            return (-99 - adancime)
+            return -99 - adancime
         elif t_final == 'remiza':
             return 0
         else:
-            return (self.linii_deschise(self.__class__.JMAX) - self.linii_deschise(self.__class__.JMIN))
+            return 20 - len(self.pieseOi) - numara_oi_in_patrat(self.pieseOi)
 
     def __str__(self):
         sir = (" ".join([str(x) for x in self.matr[0:3]]) + "\n" +
@@ -113,7 +160,6 @@ class Joc:
                " ".join([str(x) for x in self.matr[6:9]]) + "\n")
 
         return sir
-
 
 
 def distEuclid(p0, p1):
@@ -218,7 +264,10 @@ def deseneazaEcranJoc():
 joc = Joc()
 deseneazaEcranJoc()
 rand = 0
-# print(verifica_oi([ [320, 20], [220, 120], [220, 20], [420, 20], [320, 120], [220, 220], [420, 120], [420, 220], [320, 220]]))
+
+print(len(joc.mutari("V")[1]))
+# print(len(joc.mutari("O")))
+# print(numara_oi_in_patrat([ [320, 20], [220, 120], [220, 20], [420, 20], [320, 120], [220, 220], [420, 120], [420, 220], [320, 220]]))
 
 print("Muta " + ("vulpe" if rand else "oaie"))
 while True:
