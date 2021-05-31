@@ -76,7 +76,11 @@ class Joc:
         return cls.JMAX if jucator == cls.JMIN else cls.JMIN
 
     def final(self):
-        rez = len(self.pieseOi) < 9 or numara_oi_in_patrat(self.pieseOi) == 9
+        rez = False
+        if len(self.pieseOi) < 9:
+            rez = "V"
+        if numara_oi_in_patrat(self.pieseOi) == 9:
+            rez = "O"
         if rez:
             return rez
         else:
@@ -106,6 +110,8 @@ class Joc:
                             lista_oi_noua.append(nod)
                             l_mutari_oi.append(lista_oi_noua)
         elif jucator_opus == 'V':
+            # presupunem ca nu putem captura oi
+            ok = False
             for x in self.pieseVulpi:
                 vulpe = ((x[0] - Graph.translatie) // Graph.scalare, (x[1] - Graph.translatie) // Graph.scalare)
                 index_punct_vulpe = Graph.noduri.index(vulpe)
@@ -115,22 +121,29 @@ class Joc:
                         nod = [Graph.noduri[muchie[1]][0] * Graph.scalare + Graph.translatie, Graph.noduri[muchie[1]][1] * Graph.scalare + Graph.translatie]
                     elif muchie[1] == index_punct_vulpe:
                         nod = [Graph.noduri[muchie[0]][0] * Graph.scalare + Graph.translatie, Graph.noduri[muchie[0]][1] * Graph.scalare + Graph.translatie]
-                    if nod is not None and nod not in self.pieseOi + self.pieseVulpi:
+                    if nod is not None and nod not in self.pieseOi + self.pieseVulpi and not ok:
                         lista_vulpi_noua = copy.deepcopy(self.pieseVulpi)
                         lista_vulpi_noua.remove(x)
                         lista_vulpi_noua.append(nod)
                         l_mutari_vulpi.append(lista_vulpi_noua)
                     elif nod is not None and nod in self.pieseOi:
+                        print("OAIE")
                         oaie = ((nod[0] - Graph.translatie) // Graph.scalare, (nod[1] - Graph.translatie) // Graph.scalare)
                         index_punct_oaie = Graph.noduri.index(oaie)
                         for muchie2 in Graph.muchii:
+                            nod2 = None
                             if muchie2[0] == index_punct_oaie:
-                                nod2 = [Graph.noduri[muchie[1]][0] * Graph.scalare + Graph.translatie,
-                                       Graph.noduri[muchie[1]][1] * Graph.scalare + Graph.translatie]
+                                nod2 = [Graph.noduri[muchie2[1]][0] * Graph.scalare + Graph.translatie,
+                                       Graph.noduri[muchie2[1]][1] * Graph.scalare + Graph.translatie]
                             elif muchie2[1] == index_punct_oaie:
-                                nod2 = [Graph.noduri[muchie[0]][0] * Graph.scalare + Graph.translatie,
-                                       Graph.noduri[muchie[0]][1] * Graph.scalare + Graph.translatie]
-                            if nod2 not in self.pieseOi + self.pieseVulpi:
+                                nod2 = [Graph.noduri[muchie2[0]][0] * Graph.scalare + Graph.translatie,
+                                       Graph.noduri[muchie2[0]][1] * Graph.scalare + Graph.translatie]
+                            if nod2 is not None and nod2 not in self.pieseOi + self.pieseVulpi:
+                                print(nod2)
+                                if not ok:
+                                    l_mutari_vulpi = []
+                                    ok = True
+
                                 lista_oi_noua = copy.deepcopy(self.pieseOi)
                                 lista_oi_noua.remove(nod)
                                 l_mutari_oi.append(lista_oi_noua)
@@ -149,18 +162,33 @@ class Joc:
             return 99 + adancime
         elif t_final == self.__class__.JMIN:
             return -99 - adancime
-        elif t_final == 'remiza':
-            return 0
         else:
             return 20 - len(self.pieseOi) - numara_oi_in_patrat(self.pieseOi)
 
     def __str__(self):
-        sir = (" ".join([str(x) for x in self.matr[0:3]]) + "\n" +
-               " ".join([str(x) for x in self.matr[3:6]]) + "\n" +
-               " ".join([str(x) for x in self.matr[6:9]]) + "\n")
+        sir = "  "
+        sir += self.display_line(0, 3) + "  "
+        sir += self.display_line(3, 6)
+        sir += self.display_line(6, 13)
+        sir += self.display_line(13, 20)
+        sir += self.display_line(20, 27) + "  "
+        sir += self.display_line(27, 30) + "  "
+        sir += self.display_line(30, 33)
 
         return sir
 
+    def display_line(self, i, j):
+        sir = ""
+        for x in Graph.noduri[i:j]:
+            nod = [x[0] * Graph.scalare + Graph.translatie, x[1] * Graph.scalare + Graph.translatie]
+            if nod in self.pieseOi:
+                sir += "O"
+            elif nod in self.pieseVulpi:
+                sir += "V"
+            else:
+                sir += "#"
+        sir += "\n"
+        return sir
 
 def distEuclid(p0, p1):
     (x0, y0) = p0
@@ -269,6 +297,9 @@ print(len(joc.mutari("V")[1]))
 # print(len(joc.mutari("O")))
 # print(numara_oi_in_patrat([ [320, 20], [220, 120], [220, 20], [420, 20], [320, 120], [220, 220], [420, 120], [420, 220], [320, 220]]))
 
+# joc.pieseOi = [ [320, 20], [220, 120], [220, 20], [420, 20], [320, 120], [220, 220], [420, 120], [420, 220], [320, 220]]
+# print(joc.final())
+
 print("Muta " + ("vulpe" if rand else "oaie"))
 while True:
     # if verifica_oi(joc.pieseOi) == True:
@@ -281,6 +312,7 @@ while True:
             pos = pygame.mouse.get_pos()
             for nod in coordonateNoduri:
                 if distEuclid(pos, nod) <= Graph.razaPct:
+                    print(len(joc.mutari("V")[1]))
                     if rand == 1:
                         piesa = piesaVulpe
                         pieseCurente = joc.pieseVulpi
@@ -314,7 +346,7 @@ while True:
                                 nodPiesaSelectata = False
                             else:
                                 nodPiesaSelectata = nod
-
+                    print(joc)
                     deseneazaEcranJoc()
                     break
 
