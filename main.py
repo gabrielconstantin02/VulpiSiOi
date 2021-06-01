@@ -6,6 +6,11 @@ import time
 
 
 def afis_daca_final(stare_curenta):
+    """
+    functie de verificare a starii finale
+    :param stare_curenta:
+    :return: True daca este o sare finala
+    """
     final = stare_curenta.tabla_joc.final()
     if final:
         print("A castigat " + final)
@@ -15,6 +20,13 @@ def afis_daca_final(stare_curenta):
 
 
 def coliniare(p, q, r):
+    """
+    functie care verifica daca 3 puncte sunt coliniare prin calcularea determinantului
+    :param p:
+    :param q:
+    :param r:
+    :return: True daca determinantul este 0
+    """
     p1, p2 = p[0], p[1]
     q1, q2 = q[0], q[1]
     r1, r2 = r[0], r[1]
@@ -23,7 +35,13 @@ def coliniare(p, q, r):
         return True
     return False
 
+
 def exista_oi_de_capturat(stare):
+    """
+    functie care verifica daca exista oi de capturat
+    :param stare:
+    :return: True daca exista oi ce pot fi capturate
+    """
     for x in stare.tabla_joc.pieseVulpi:
         vulpe = ((x[0] - Graph.translatie) // Graph.scalare, (x[1] - Graph.translatie) // Graph.scalare)
         index_punct_vulpe = Graph.noduri.index(vulpe)
@@ -48,16 +66,17 @@ def exista_oi_de_capturat(stare):
                     elif muchie2[1] == index_punct_oaie:
                         nod2 = [Graph.noduri[muchie2[0]][0] * Graph.scalare + Graph.translatie,
                                 Graph.noduri[muchie2[0]][1] * Graph.scalare + Graph.translatie]
-                    if nod2 is not None and nod2 not in stare.tabla_joc.pieseOi + stare.tabla_joc.pieseVulpi and coliniare(x, nod, nod2):
+                    if nod2 is not None and nod2 not in stare.tabla_joc.pieseOi + stare.tabla_joc.pieseVulpi and coliniare(
+                            x, nod, nod2):
                         return True
     return False
 
 
 def numara_oi_in_patrat(listaOi):
     """
-    functie care verifica daca 9 oi au ajuns in patratul de sus
+    functie care numara cate oi au ajuns in patratul de sus
     :param listaOi:
-    :return:
+    :return: nr de oi din patratul de sus
     """
     nr = 0
     for x in listaOi:
@@ -73,45 +92,6 @@ class Joc:
     """
     JMIN = None
     JMAX = None
-
-    '''
-    @classmethod
-    def initializeaza(cls, display, NR_COLOANE=3, dim_celula=100):
-        cls.display = display
-        cls.dim_celula = dim_celula
-        cls.x_img = pygame.image.load('ics.png')
-        cls.x_img = pygame.transform.scale(cls.x_img, (dim_celula, dim_celula))
-        cls.zero_img = pygame.image.load('zero.png')
-        cls.zero_img = pygame.transform.scale(cls.zero_img, (dim_celula, dim_celula))
-        cls.celuleGrid = []  # este lista cu patratelele din grid
-        for linie in range(NR_COLOANE):
-            for coloana in range(NR_COLOANE):
-                patr = pygame.Rect(coloana * (dim_celula + 1), linie * (dim_celula + 1), dim_celula, dim_celula)
-                cls.celuleGrid.append(patr)
-
-    def deseneaza_grid(self, marcaj=None):  # tabla de exemplu este ["#","x","#","0",......]
-
-        for ind in range(len(self.matr)):
-            linie = ind // 3  # // inseamna div
-            coloana = ind % 3
-
-            if marcaj == ind:
-                # daca am o patratica selectata, o desenez cu rosu
-                culoare = (255, 0, 0)
-            else:
-                # altfel o desenez cu alb
-                culoare = (255, 255, 255)
-            pygame.draw.rect(self.__class__.display, culoare, self.__class__.celuleGrid[ind])  # alb = (255,255,255)
-            if self.matr[ind] == 'x':
-                self.__class__.display.blit(self.__class__.x_img, (
-                coloana * (self.__class__.dim_celula + 1), linie * (self.__class__.dim_celula + 1)))
-            elif self.matr[ind] == '0':
-                self.__class__.display.blit(self.__class__.zero_img, (
-                coloana * (self.__class__.dim_celula + 1), linie * (self.__class__.dim_celula + 1)))
-        pygame.display.flip()  # obligatoriu pentru a actualiza interfata (desenul)
-
-    # pygame.display.update()
-'''
 
     def __init__(self, pieseOi=None, pieseVulpi=None):
         self.pieseOi = pieseOi or [[x * Graph.scalare + Graph.translatie, y * Graph.scalare + Graph.translatie] for
@@ -134,7 +114,6 @@ class Joc:
         else:
             return False
 
-    # TODO: testeaza functia de mutari
     def mutari(self, jucator_opus):
         # l_mutari_oi = []
         # l_mutari_vulpi = []
@@ -185,7 +164,7 @@ class Joc:
                     elif nod is not None and nod in self.pieseOi:
                         # print("OAIE")
                         oaie = (
-                        (nod[0] - Graph.translatie) // Graph.scalare, (nod[1] - Graph.translatie) // Graph.scalare)
+                            (nod[0] - Graph.translatie) // Graph.scalare, (nod[1] - Graph.translatie) // Graph.scalare)
                         index_punct_oaie = Graph.noduri.index(oaie)
                         for muchie2 in Graph.muchii:
                             nod2 = None
@@ -195,7 +174,8 @@ class Joc:
                             elif muchie2[1] == index_punct_oaie:
                                 nod2 = [Graph.noduri[muchie2[0]][0] * Graph.scalare + Graph.translatie,
                                         Graph.noduri[muchie2[0]][1] * Graph.scalare + Graph.translatie]
-                            if nod2 is not None and nod2 not in self.pieseOi + self.pieseVulpi and coliniare(x, nod, nod2):
+                            if nod2 is not None and nod2 not in self.pieseOi + self.pieseVulpi and coliniare(x, nod,
+                                                                                                             nod2):
                                 # print(nod2)
                                 if not ok:
                                     # l_mutari_vulpi = []
@@ -238,6 +218,12 @@ class Joc:
         return sir
 
     def display_line(self, i, j):
+        """
+        functie de afisare a unei linii din tabla
+        :param i: indicele de pornire
+        :param j: capatul
+        :return: string-ul format pt afisare
+        """
         sir = ""
         for x in Graph.noduri[i:j]:
             nod = [x[0] * Graph.scalare + Graph.translatie, x[1] * Graph.scalare + Graph.translatie]
@@ -413,6 +399,7 @@ class Graph:
 
 
 pygame.init()
+pygame.display.set_caption("Constantin Gabriel-Adrian --- Vulpi si oi ")
 culoareEcran = (255, 255, 255)
 culoareLinii = (0, 0, 0)
 
@@ -429,11 +416,7 @@ nodPiesaSelectata = False
 nodOaieSelectata = False
 coordonateNoduri = [[Graph.translatie + Graph.scalare * x for x in nod] for nod in Graph.noduri]
 # pieseOi = [[x * Graph.scalare + Graph.translatie, y * Graph.scalare + Graph.translatie] for (x, y) in Graph.noduri[13:]]
-nodPiesaSelectata = None
-nodOaieSelectata = None
 # pieseVulpi = [[220, 20], [420, 20]]
-
-ADANCIME_MAX = 6
 
 
 def deseneazaEcranJoc():
@@ -455,30 +438,159 @@ def deseneazaEcranJoc():
     pygame.display.update()
 
 
-raspuns_valid = False
-while not raspuns_valid:
-    tip_algoritm = input("Algorimul folosit? (raspundeti cu 1 sau 2)\n 1.Minimax\n 2.Alpha-beta\n ")
-    if tip_algoritm in ['1', '2']:
-        raspuns_valid = True
-    else:
-        print("Nu ati ales o varianta corecta.")
-# initializare jucatori
-raspuns_valid = False
-while not raspuns_valid:
-    Joc.JMIN = input("Doriti sa jucati cu V sau cu O? ").lower()
-    if (Joc.JMIN in ['v', 'o']):
-        raspuns_valid = True
-    else:
-        print("Raspunsul trebuie sa fie V sau O.")
-Joc.JMAX = 'o' if Joc.JMIN == 'v' else 'v'
+class Buton:
+    def __init__(self, display=None, left=0, top=0, w=0, h=0, culoareFundal=(53, 80, 115),
+                 culoareFundalSel=(89, 134, 194), text="", font="arial", fontDimensiune=16, culoareText=(255, 255, 255),
+                 valoare=""):
+        self.display = display
+        self.culoareFundal = culoareFundal
+        self.culoareFundalSel = culoareFundalSel
+        self.text = text
+        self.font = font
+        self.w = w
+        self.h = h
+        self.selectat = False
+        self.fontDimensiune = fontDimensiune
+        self.culoareText = culoareText
+        # creez obiectul font
+        fontObj = pygame.font.SysFont(self.font, self.fontDimensiune)
+        self.textRandat = fontObj.render(self.text, True, self.culoareText)
+        self.dreptunghi = pygame.Rect(left, top, w, h)
+        # aici centram textul
+        self.dreptunghiText = self.textRandat.get_rect(center=self.dreptunghi.center)
+        self.valoare = valoare
 
+    def selecteaza(self, sel):
+        self.selectat = sel
+        self.deseneaza()
+
+    def selecteazaDupacoord(self, coord):
+        if self.dreptunghi.collidepoint(coord):
+            self.selecteaza(True)
+            return True
+        return False
+
+    def updateDreptunghi(self):
+        self.dreptunghi.left = self.left
+        self.dreptunghi.top = self.top
+        self.dreptunghiText = self.textRandat.get_rect(center=self.dreptunghi.center)
+
+    def deseneaza(self):
+        culoareF = self.culoareFundalSel if self.selectat else self.culoareFundal
+        pygame.draw.rect(self.display, culoareF, self.dreptunghi)
+        self.display.blit(self.textRandat, self.dreptunghiText)
+
+
+class GrupButoane:
+    def __init__(self, listaButoane=[], indiceSelectat=0, spatiuButoane=10, left=0, top=0):
+        self.listaButoane = listaButoane
+        self.indiceSelectat = indiceSelectat
+        self.listaButoane[self.indiceSelectat].selectat = True
+        self.top = top
+        self.left = left
+        leftCurent = self.left
+        for b in self.listaButoane:
+            b.top = self.top
+            b.left = leftCurent
+            b.updateDreptunghi()
+            leftCurent += (spatiuButoane + b.w)
+
+    def selecteazaDupacoord(self, coord):
+        for ib, b in enumerate(self.listaButoane):
+            if b.selecteazaDupacoord(coord):
+                self.listaButoane[self.indiceSelectat].selecteaza(False)
+                self.indiceSelectat = ib
+                return True
+        return False
+
+    def deseneaza(self):
+        # atentie, nu face wrap
+        for b in self.listaButoane:
+            b.deseneaza()
+
+    def getValoare(self):
+        return self.listaButoane[self.indiceSelectat].valoare
+
+
+def deseneaza_alegeri(display):
+    btn_alg = GrupButoane(
+        top=30,
+        left=30,
+        listaButoane=[
+            Buton(display=display, w=80, h=30, text="minimax", valoare="1"),
+            Buton(display=display, w=80, h=30, text="alphabeta", valoare="2")
+        ],
+        indiceSelectat=1)
+    btn_juc = GrupButoane(
+        top=100,
+        left=30,
+        listaButoane=[
+            Buton(display=display, w=35, h=30, text="vulpi", valoare="v"),
+            Buton(display=display, w=35, h=30, text="oi", valoare="o")
+        ],
+        indiceSelectat=0)
+    btn_fst = GrupButoane(
+        top=170,
+        left=30,
+        listaButoane=[
+            Buton(display=display, w=175, h=30, text="Primul jucator: vulpi", valoare="v"),
+            Buton(display=display, w=175, h=30, text="Primul jucator: oi", valoare="o")
+        ],
+        indiceSelectat=1)
+    btn_dif = GrupButoane(
+        top=240,
+        left=30,
+        listaButoane=[
+            Buton(display=display, w=125, h=30, text="Incepator", valoare="1"),
+            Buton(display=display, w=125, h=30, text="Mediu", valoare="3"),
+            Buton(display=display, w=125, h=30, text="Avansat", valoare="6"),
+        ],
+        indiceSelectat=1)
+    btn_est = GrupButoane(
+        top=30,
+        left=300,
+        listaButoane=[
+            Buton(display=display, w=125, h=30, text="Estimare 1", valoare="1"),
+            Buton(display=display, w=125, h=30, text="Estimare 2", valoare="2"),
+        ],
+        indiceSelectat=1)
+    ok = Buton(display=display, top=310, left=30, w=40, h=30, text="PLAY", culoareFundal=(155, 0, 55))
+    btn_alg.deseneaza()
+    btn_juc.deseneaza()
+    btn_fst.deseneaza()
+    btn_dif.deseneaza()
+    btn_est.deseneaza()
+    ok.deseneaza()
+    while True:
+        for ev in pygame.event.get():
+            if ev.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif ev.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                if not btn_alg.selecteazaDupacoord(pos):
+                    if not btn_juc.selecteazaDupacoord(pos):
+                        if not btn_fst.selecteazaDupacoord(pos):
+                            if not btn_dif.selecteazaDupacoord(pos):
+                                if not btn_est.selecteazaDupacoord(pos):
+                                    if ok.selecteazaDupacoord(pos):
+                                        display.fill((0, 0, 0))  # stergere ecran
+                                        # tabla_curenta.deseneaza_grid()
+                                        # deseneazaEcranJoc()
+                                        return btn_juc.getValoare(), btn_alg.getValoare(), btn_fst.getValoare(), btn_dif.getValoare(), btn_est.getValoare()
+        pygame.display.update()
+
+
+Joc.JMIN, tip_algoritm, primul_jucator, nivel, estimare = deseneaza_alegeri(ecran)
+Joc.JMAX = 'o' if Joc.JMIN == 'v' else 'v'
 # initializare tabla
 tabla_curenta = Joc()
 print("Tabla initiala")
 print(str(tabla_curenta))
-
 # creare stare initiala
-stare_curenta = Stare(tabla_curenta, 'v', ADANCIME_MAX)
+ADANCIME_MAX = int(nivel)
+print(ADANCIME_MAX)
+stare_curenta = Stare(tabla_curenta, primul_jucator, ADANCIME_MAX)
 
 deseneazaEcranJoc()
 rand = 0
@@ -491,10 +603,14 @@ rand = 0
 # print(joc.final())
 
 # print("Muta " + ("vulpe" if rand else "oaie"))
+afisare = False
 while True:
     # if verifica_oi(joc.pieseOi) == True:
     # print(True)
     if stare_curenta.j_curent == Joc.JMIN:
+        if not afisare:
+            print("Muta " + ("vulpe" if Joc.JMIN == 'v' else "oaie"))
+            afisare = True
         for ev in pygame.event.get():
             if ev.type == pygame.QUIT:
                 pygame.quit()
@@ -510,45 +626,52 @@ while True:
                         else:
                             piesa = piesaOaie
                             pieseCurente = stare_curenta.tabla_joc.pieseOi
-                            # print(pieseCurente)
+                        # print(pieseCurente)
 
                         if nod not in stare_curenta.tabla_joc.pieseOi + stare_curenta.tabla_joc.pieseVulpi:
 
                             if nodPiesaSelectata:
                                 n0 = coordonateNoduri.index(nod)
                                 n1 = coordonateNoduri.index(nodPiesaSelectata)
-                                if stare_curenta.j_curent == 'o' and ((n0, n1) in Graph.muchii or (n1, n0) in Graph.muchii) and n1 > n0 - 2:
+                                if stare_curenta.j_curent == 'o' and (
+                                        (n0, n1) in Graph.muchii or (n1, n0) in Graph.muchii) and n1 > n0 - 2:
                                     pieseCurente.remove(nodPiesaSelectata)
                                     pieseCurente.append(nod)
                                     # rand = 1 - rand
                                     # print("Muta " + ("vulpe" if rand else "oaie"))
                                     nodPiesaSelectata = False
+                                    print("Tabla dupa mutarea jucatorului")
+                                    print(str(stare_curenta))
                                     stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
-                                elif not nodOaieSelectata and ((n0, n1) in Graph.muchii or (n1, n0) in Graph.muchii) and not exista_oi_de_capturat(stare_curenta) and stare_curenta.j_curent == 'v':
+                                    afisare = False
+                                elif not nodOaieSelectata and ((n0, n1) in Graph.muchii or (
+                                n1, n0) in Graph.muchii) and not exista_oi_de_capturat(
+                                        stare_curenta) and stare_curenta.j_curent == 'v':
                                     pieseCurente.remove(nodPiesaSelectata)
                                     pieseCurente.append(nod)
                                     # rand = 1 - rand
                                     # print("Muta " + ("vulpe" if rand else "oaie"))
                                     nodPiesaSelectata = False
+                                    print("Tabla dupa mutarea jucatorului")
+                                    print(str(stare_curenta))
                                     stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
+                                    afisare = False
                                 elif nodOaieSelectata:
                                     n2 = coordonateNoduri.index(nodOaieSelectata)
-                                    if ((n0, n2) in Graph.muchii or (n2, n0) in Graph.muchii) and ((n2, n1) in Graph.muchii or (n1, n2) in Graph.muchii) and coliniare(nod, nodPiesaSelectata, nodOaieSelectata):
+                                    if ((n0, n2) in Graph.muchii or (n2, n0) in Graph.muchii) and (
+                                            (n2, n1) in Graph.muchii or (n1, n2) in Graph.muchii) and coliniare(nod,
+                                                                                                                nodPiesaSelectata,
+                                                                                                                nodOaieSelectata):
                                         pieseCurente.remove(nodPiesaSelectata)
                                         pieseCurente.append(nod)
                                         stare_curenta.tabla_joc.pieseOi.remove(nodOaieSelectata)
                                         nodPiesaSelectata = False
                                         nodOaieSelectata = False
                                         if not exista_oi_de_capturat(stare_curenta):
+                                            print("Tabla dupa mutarea jucatorului")
+                                            print(str(stare_curenta))
                                             stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
-                            '''
-                            else:
-                                pieseCurente.append(nod)
-                                rand = 1 - rand
-                                print(nod)
-                                print(pieseCurente)
-                                print("Muta " + ("negru" if rand else "alb"))
-                            '''
+                                            afisare = False
                         else:
                             if nod in pieseCurente:
                                 if nodPiesaSelectata == nod:
@@ -563,14 +686,12 @@ while True:
                                     else:
                                         nodOaieSelectata = nod
                         # print(tabla_curenta)
-                        print("Tabla dupa mutarea jucatorului")
-                        print(str(stare_curenta))
                         deseneazaEcranJoc()
                         break
 
     else:  # jucatorul e JMAX (calculatorul)
         # Mutare calculator
-
+        print("Muta " + ("vulpe" if stare_curenta.j_curent == 'v' else "oaie"))
         # preiau timpul in milisecunde de dinainte de mutare
         t_inainte = int(round(time.time() * 1000))
         nr_oi_inainte = len(stare_curenta.tabla_joc.pieseOi)
@@ -592,5 +713,6 @@ while True:
             break
 
         # S-a realizat o mutare. Schimb jucatorul cu cel opus
-        if not (exista_oi_de_capturat(stare_curenta) and nr_oi_inainte != nr_oi_curent) or stare_curenta.j_curent == 'o':
+        if not (exista_oi_de_capturat(
+                stare_curenta) and nr_oi_inainte != nr_oi_curent) or stare_curenta.j_curent == 'o':
             stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
