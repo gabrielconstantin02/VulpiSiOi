@@ -16,6 +16,7 @@ def marcheaza_vulpi():
         ecran.blit(piesaSelectata, (nod[0] - Graph.razaPiesa, nod[1] - Graph.razaPiesa))
     pygame.display.update()
 
+
 def afis_daca_final(stare_curenta):
     """
     functie de verificare a starii finale
@@ -47,13 +48,13 @@ def coliniare(p, q, r):
     return False
 
 
-def exista_oi_de_capturat(stare):
+def exista_oi_de_capturat(stare, x=None):
     """
     functie care verifica daca exista oi de capturat
     :param stare:
     :return: True daca exista oi ce pot fi capturate
     """
-    for x in stare.tabla_joc.pieseVulpi:
+    if x is not None:
         vulpe = ((x[0] - Graph.translatie) // Graph.scalare, (x[1] - Graph.translatie) // Graph.scalare)
         index_punct_vulpe = Graph.noduri.index(vulpe)
         for muchie in Graph.muchii:
@@ -80,12 +81,41 @@ def exista_oi_de_capturat(stare):
                     if nod2 is not None and nod2 not in stare.tabla_joc.pieseOi + stare.tabla_joc.pieseVulpi and coliniare(
                             x, nod, nod2):
                         return True
-    return False
+        return False
+    else:
+        for x in stare.tabla_joc.pieseVulpi:
+            vulpe = ((x[0] - Graph.translatie) // Graph.scalare, (x[1] - Graph.translatie) // Graph.scalare)
+            index_punct_vulpe = Graph.noduri.index(vulpe)
+            for muchie in Graph.muchii:
+                nod = None
+                if muchie[0] == index_punct_vulpe:
+                    nod = [Graph.noduri[muchie[1]][0] * Graph.scalare + Graph.translatie,
+                           Graph.noduri[muchie[1]][1] * Graph.scalare + Graph.translatie]
+                elif muchie[1] == index_punct_vulpe:
+                    nod = [Graph.noduri[muchie[0]][0] * Graph.scalare + Graph.translatie,
+                           Graph.noduri[muchie[0]][1] * Graph.scalare + Graph.translatie]
+                if nod is not None and nod in stare.tabla_joc.pieseOi:
+                    # print("OAIE")
+                    oaie = (
+                        (nod[0] - Graph.translatie) // Graph.scalare, (nod[1] - Graph.translatie) // Graph.scalare)
+                    index_punct_oaie = Graph.noduri.index(oaie)
+                    for muchie2 in Graph.muchii:
+                        nod2 = None
+                        if muchie2[0] == index_punct_oaie:
+                            nod2 = [Graph.noduri[muchie2[1]][0] * Graph.scalare + Graph.translatie,
+                                    Graph.noduri[muchie2[1]][1] * Graph.scalare + Graph.translatie]
+                        elif muchie2[1] == index_punct_oaie:
+                            nod2 = [Graph.noduri[muchie2[0]][0] * Graph.scalare + Graph.translatie,
+                                    Graph.noduri[muchie2[0]][1] * Graph.scalare + Graph.translatie]
+                        if nod2 is not None and nod2 not in stare.tabla_joc.pieseOi + stare.tabla_joc.pieseVulpi and coliniare(
+                                x, nod, nod2):
+                            return True
+        return False
 
 
-def numara_oi_in_patrat(listaOi):
+def numara_piese_in_patrat(listaOi, listaVulpi):
     """
-    functie care numara cate oi au ajuns in patratul de sus
+    functie care numara cate piese au ajuns in patratul de sus
     :param listaOi:
     :return: nr de oi din patratul de sus
     """
@@ -93,6 +123,10 @@ def numara_oi_in_patrat(listaOi):
     for x in listaOi:
         oaie = ((x[0] - Graph.translatie) // Graph.scalare, (x[1] - Graph.translatie) // Graph.scalare)
         if oaie in Graph.noduri[:6] + Graph.noduri[8:11]:
+            nr += 1
+    for x in listaVulpi:
+        vulpe = ((x[0] - Graph.translatie) // Graph.scalare, (x[1] - Graph.translatie) // Graph.scalare)
+        if vulpe in Graph.noduri[:6] + Graph.noduri[8:11]:
             nr += 1
     return nr
 
@@ -119,7 +153,7 @@ class Joc:
         if len(self.pieseOi) < 9:
             rez = "v"
             marcheaza_vulpi()
-        if numara_oi_in_patrat(self.pieseOi) == 9:
+        if numara_piese_in_patrat(self.pieseOi, self.pieseVulpi) == 9 and not exista_oi_de_capturat(stare_curenta, self.pieseVulpi[0]) and not exista_oi_de_capturat(stare_curenta, self.pieseVulpi[1]):
             rez = "o"
             marcheaza_oi()
         if rez:
@@ -202,17 +236,23 @@ class Joc:
 
         return l_mutari
 
-    def estimeaza_scor(self, adancime, j_curent):
+    def estimeaza_scor(self, adancime, j_curent, mod):
 
         t_final = self.final()
         if t_final == self.__class__.JMAX:
             return 99 + adancime
         elif t_final == self.__class__.JMIN:
             return -99 - adancime
-        elif j_curent == 'v':
-            return 20 - len(self.pieseOi) - numara_oi_in_patrat(self.pieseOi)
+        elif mod == "1":
+            if j_curent == 'v':
+                return 20 - len(self.pieseOi) - numara_piese_in_patrat(self.pieseOi, self.pieseVulpi)
+            else:
+                return len(self.pieseOi) + numara_piese_in_patrat(self.pieseOi, self.pieseVulpi)
         else:
-            return len(self.pieseOi) + numara_oi_in_patrat(self.pieseOi)
+            if j_curent == 'v':
+                return 20 - len(self.pieseOi) - 3 * numara_piese_in_patrat(self.pieseOi, self.pieseVulpi)
+            else:
+                return len(self.pieseOi) - 20 + 3 * numara_piese_in_patrat(self.pieseOi, self.pieseVulpi)
 
     def __str__(self):
         sir = "  "
@@ -282,7 +322,7 @@ class Stare:
 
 def min_max(stare):
     if stare.adancime == 0 or stare.tabla_joc.final():
-        stare.estimare = stare.tabla_joc.estimeaza_scor(stare.adancime, stare.j_curent)
+        stare.estimare = stare.tabla_joc.estimeaza_scor(stare.adancime, stare.j_curent, estimare)
         return stare
 
     # calculez toate mutarile posibile din starea curenta
@@ -303,7 +343,7 @@ def min_max(stare):
 
 def alpha_beta(alpha, beta, stare):
     if stare.adancime == 0 or stare.tabla_joc.final():
-        stare.estimare = stare.tabla_joc.estimeaza_scor(stare.adancime, stare.j_curent)
+        stare.estimare = stare.tabla_joc.estimeaza_scor(stare.adancime, stare.j_curent, estimare)
         return stare
 
     if alpha > beta:
@@ -403,7 +443,7 @@ class Graph:
               ]
     scalare = 100
     translatie = 20
-    razaPct = 8
+    razaPct = 9
     razaPiesa = 15
 
 
@@ -552,7 +592,7 @@ def deseneaza_alegeri(display):
         listaButoane=[
             Buton(display=display, w=125, h=30, text="Incepator", valoare="1"),
             Buton(display=display, w=125, h=30, text="Mediu", valoare="3"),
-            Buton(display=display, w=125, h=30, text="Avansat", valoare="6"),
+            Buton(display=display, w=125, h=30, text="Avansat", valoare="5"),
         ],
         indiceSelectat=1)
     btn_est = GrupButoane(
@@ -676,7 +716,7 @@ while True:
                                         stare_curenta.tabla_joc.pieseOi.remove(nodOaieSelectata)
                                         nodPiesaSelectata = False
                                         nodOaieSelectata = False
-                                        if not exista_oi_de_capturat(stare_curenta):
+                                        if not exista_oi_de_capturat(stare_curenta, nod):
                                             print("Tabla dupa mutarea jucatorului")
                                             print(str(stare_curenta))
                                             stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
@@ -705,6 +745,7 @@ while True:
         # preiau timpul in milisecunde de dinainte de mutare
         t_inainte = int(round(time.time() * 1000))
         nr_oi_inainte = len(stare_curenta.tabla_joc.pieseOi)
+        vulpi_inainte = stare_curenta.tabla_joc.pieseVulpi
         if tip_algoritm == '1':
             stare_actualizata = min_max(stare_curenta)
         else:  # tip_algoritm==2
@@ -723,8 +764,12 @@ while True:
             break
 
         # S-a realizat o mutare. Schimb jucatorul cu cel opus
-        if not (exista_oi_de_capturat(
-                stare_curenta) and nr_oi_inainte != nr_oi_curent) or stare_curenta.j_curent == 'o':
+        vulpe = None
+        for x in vulpi_inainte:
+            if x not in stare_curenta.tabla_joc.pieseVulpi:
+                vulpe = x
+        if not (vulpe and exista_oi_de_capturat(
+                stare_curenta, vulpe) and nr_oi_inainte != nr_oi_curent) or stare_curenta.j_curent == 'o':
             stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
 
 while True:
