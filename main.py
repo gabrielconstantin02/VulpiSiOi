@@ -80,9 +80,7 @@ def exista_oi_de_capturat(stare, x=None):
                                 Graph.noduri[muchie2[0]][1] * Graph.scalare + Graph.translatie]
                     if nod2 is not None and nod2 not in stare.tabla_joc.pieseOi + stare.tabla_joc.pieseVulpi and coliniare(
                             x, nod, nod2):
-                        print(x, nod, nod2)
                         return True
-        print(x)
         return False
     else:
         for x in stare.tabla_joc.pieseVulpi:
@@ -288,10 +286,9 @@ class Joc:
                 return len(self.pieseOi) + numara_piese_in_patrat(self.pieseOi, self.pieseVulpi)
         else:
             if self.JMAX == 'v':
-                return 20 - len(self.pieseOi) - 3 * numara_piese_in_patrat(self.pieseOi, self.pieseVulpi)
+                return 20 - len(self.pieseOi) + nr_oi_in_pericol(self.pieseOi, self.pieseVulpi) - numara_piese_in_patrat(self.pieseOi, self.pieseVulpi)
             else:
-                print(numara_piese_in_patrat(self.pieseOi, self.pieseVulpi) - nr_oi_in_pericol(self.pieseOi, self.pieseVulpi))
-                return numara_piese_in_patrat(self.pieseOi, self.pieseVulpi) - nr_oi_in_pericol(self.pieseOi, self.pieseVulpi)
+                return len(self.pieseOi) + numara_piese_in_patrat(self.pieseOi, self.pieseVulpi) - nr_oi_in_pericol(self.pieseOi, self.pieseVulpi)
 
     def __str__(self):
         sir = "  "
@@ -810,10 +807,6 @@ while True:
         if not (vulpe is not None and exista_oi_de_capturat(
                 stare_curenta, vulpe) and nr_oi_inainte != nr_oi_curent) or stare_curenta.j_curent == 'o':
             stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
-        else:
-            print(nr_oi_inainte, nr_oi_curent)
-            print(exista_oi_de_capturat(
-                stare_curenta, vulpe))
 
 while True:
     for event in pygame.event.get():
