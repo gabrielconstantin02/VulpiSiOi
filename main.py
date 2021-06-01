@@ -627,8 +627,8 @@ def deseneaza_alegeri(display):
         left=30,
         listaButoane=[
             Buton(display=display, w=125, h=30, text="Incepator", valoare="1"),
-            Buton(display=display, w=125, h=30, text="Mediu", valoare="3"),
-            Buton(display=display, w=125, h=30, text="Avansat", valoare="5"),
+            Buton(display=display, w=125, h=30, text="Mediu", valoare="2"),
+            Buton(display=display, w=125, h=30, text="Avansat", valoare="4"),
         ],
         indiceSelectat=1)
     btn_est = GrupButoane(
