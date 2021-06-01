@@ -5,6 +5,17 @@ import copy
 import time
 
 
+def marcheaza_oi():
+    for nod in stare_curenta.tabla_joc.pieseOi:
+        ecran.blit(piesaSelectata, (nod[0] - Graph.razaPiesa, nod[1] - Graph.razaPiesa))
+    pygame.display.update()
+
+
+def marcheaza_vulpi():
+    for nod in stare_curenta.tabla_joc.pieseVulpi:
+        ecran.blit(piesaSelectata, (nod[0] - Graph.razaPiesa, nod[1] - Graph.razaPiesa))
+    pygame.display.update()
+
 def afis_daca_final(stare_curenta):
     """
     functie de verificare a starii finale
@@ -107,16 +118,22 @@ class Joc:
         rez = False
         if len(self.pieseOi) < 9:
             rez = "v"
+            marcheaza_vulpi()
         if numara_oi_in_patrat(self.pieseOi) == 9:
             rez = "o"
+            marcheaza_oi()
         if rez:
             return rez
         else:
             return False
 
     def mutari(self, jucator_opus):
-        # l_mutari_oi = []
-        # l_mutari_vulpi = []
+        """
+
+        :param jucator_opus:
+        :return:
+        """
+
         l_mutari = []
         if jucator_opus == 'o':
             for x in self.pieseOi:
@@ -130,7 +147,6 @@ class Joc:
                             lista_oi_noua = copy.deepcopy(self.pieseOi)
                             lista_oi_noua.remove(x)
                             lista_oi_noua.append(nod)
-                            # l_mutari_oi.append(lista_oi_noua)
                             l_mutari.append(Joc(lista_oi_noua, self.pieseVulpi))
                     elif muchie[1] == index_punct_oaie:
                         nod = [Graph.noduri[muchie[0]][0] * Graph.scalare + Graph.translatie,
@@ -139,7 +155,6 @@ class Joc:
                             lista_oi_noua = copy.deepcopy(self.pieseOi)
                             lista_oi_noua.remove(x)
                             lista_oi_noua.append(nod)
-                            # l_mutari_oi.append(lista_oi_noua)
                             l_mutari.append(Joc(lista_oi_noua, self.pieseVulpi))
         elif jucator_opus == 'v':
             # presupunem ca nu putem captura oi
@@ -159,10 +174,8 @@ class Joc:
                         lista_vulpi_noua = copy.deepcopy(self.pieseVulpi)
                         lista_vulpi_noua.remove(x)
                         lista_vulpi_noua.append(nod)
-                        # l_mutari_vulpi.append(lista_vulpi_noua)
                         l_mutari.append(Joc(self.pieseOi, lista_vulpi_noua))
                     elif nod is not None and nod in self.pieseOi:
-                        # print("OAIE")
                         oaie = (
                             (nod[0] - Graph.translatie) // Graph.scalare, (nod[1] - Graph.translatie) // Graph.scalare)
                         index_punct_oaie = Graph.noduri.index(oaie)
@@ -176,26 +189,22 @@ class Joc:
                                         Graph.noduri[muchie2[0]][1] * Graph.scalare + Graph.translatie]
                             if nod2 is not None and nod2 not in self.pieseOi + self.pieseVulpi and coliniare(x, nod,
                                                                                                              nod2):
-                                # print(nod2)
                                 if not ok:
-                                    # l_mutari_vulpi = []
                                     l_mutari = []
                                     ok = True
 
                                 lista_oi_noua = copy.deepcopy(self.pieseOi)
                                 lista_oi_noua.remove(nod)
-                                # l_mutari_oi.append(lista_oi_noua)
                                 lista_vulpi_noua = copy.deepcopy(self.pieseVulpi)
                                 lista_vulpi_noua.remove(x)
                                 lista_vulpi_noua.append(nod2)
-                                # l_mutari_vulpi.append(lista_vulpi_noua)
                                 l_mutari.append(Joc(lista_oi_noua, lista_vulpi_noua))
 
         return l_mutari
 
     def estimeaza_scor(self, adancime, j_curent):
+
         t_final = self.final()
-        # if (adancime==0):
         if t_final == self.__class__.JMAX:
             return 99 + adancime
         elif t_final == self.__class__.JMIN:
@@ -688,7 +697,8 @@ while True:
                         # print(tabla_curenta)
                         deseneazaEcranJoc()
                         break
-
+        if afis_daca_final(stare_curenta):
+            break
     else:  # jucatorul e JMAX (calculatorul)
         # Mutare calculator
         print("Muta " + ("vulpe" if stare_curenta.j_curent == 'v' else "oaie"))
@@ -716,3 +726,9 @@ while True:
         if not (exista_oi_de_capturat(
                 stare_curenta) and nr_oi_inainte != nr_oi_curent) or stare_curenta.j_curent == 'o':
             stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
