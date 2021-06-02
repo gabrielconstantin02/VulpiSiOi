@@ -1061,7 +1061,7 @@ elif game_mod == "1":
             if t_inainte_jucator2 is None:
                 t_inainte_jucator2 = int(round(time.time() * 1000))
             if not afisare:
-                print("\nMuta " + ("vulpe" if Joc.JMIN == 'v' else "oaie") + "\n")
+                print("\nMuta " + ("oaie" if Joc.JMIN == 'v' else "vulpe") + "\n")
                 afisare = True
             for ev in pygame.event.get():
                 if ev.type == pygame.QUIT:
