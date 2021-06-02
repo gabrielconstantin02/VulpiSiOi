@@ -726,12 +726,22 @@ def deseneaza_alegeri(display):
             Buton(display=display, w=125, h=30, text="Estimare 2", valoare="2"),
         ],
         indiceSelectat=1)
-    ok = Buton(display=display, top=310, left=30, w=40, h=30, text="PLAY", culoareFundal=(155, 0, 55))
+    btn_mod = GrupButoane(
+        top=310,
+        left=30,
+        listaButoane=[
+            Buton(display=display, w=125, h=30, text="PvP", valoare="1"),
+            Buton(display=display, w=125, h=30, text="Player vs PC", valoare="2"),
+            Buton(display=display, w=125, h=30, text="PC vs PC", valoare="3"),
+        ],
+        indiceSelectat=1)
+    ok = Buton(display=display, top=410, left=30, w=40, h=30, text="PLAY", culoareFundal=(155, 0, 55))
     btn_alg.deseneaza()
     btn_juc.deseneaza()
     btn_fst.deseneaza()
     btn_dif.deseneaza()
     btn_est.deseneaza()
+    btn_mod.deseneaza()
     ok.deseneaza()
     while True:
         for ev in pygame.event.get():
@@ -745,15 +755,15 @@ def deseneaza_alegeri(display):
                         if not btn_fst.selecteazaDupacoord(pos):
                             if not btn_dif.selecteazaDupacoord(pos):
                                 if not btn_est.selecteazaDupacoord(pos):
-                                    if ok.selecteazaDupacoord(pos):
-                                        display.fill((0, 0, 0))  # stergere ecran
-                                        # tabla_curenta.deseneaza_grid()
-                                        # deseneazaEcranJoc()
-                                        return btn_juc.getValoare(), btn_alg.getValoare(), btn_fst.getValoare(), btn_dif.getValoare(), btn_est.getValoare()
+                                    if not btn_mod.selecteazaDupacoord(pos):
+                                        if ok.selecteazaDupacoord(pos):
+                                            display.fill((0, 0, 0))  # stergere ecran
+                                            # deseneazaEcranJoc()
+                                            return btn_juc.getValoare(), btn_alg.getValoare(), btn_fst.getValoare(), btn_dif.getValoare(), btn_est.getValoare(), btn_mod.getValoare()
         pygame.display.update()
 
 
-Joc.JMIN, tip_algoritm, primul_jucator, nivel, estimare = deseneaza_alegeri(ecran)
+Joc.JMIN, tip_algoritm, primul_jucator, nivel, estimare, game_mod = deseneaza_alegeri(ecran)
 Joc.JMAX = 'o' if Joc.JMIN == 'v' else 'v'
 # initializare tabla
 tabla_curenta = Joc()
@@ -775,166 +785,513 @@ t_inainte_joc = int(round(time.time() * 1000))
 
 afisare = False
 t_inainte_jucator = None
-while True:
-    pressed_keys = pygame.key.get_pressed()
-    # daca s-a apasat escape ca sa se iasa din joc
-    if pressed_keys[K_ESCAPE]:
-        t_dupa_joc = int(round(time.time() * 1000))
-        print("Jocul a durat " + str(t_dupa_joc - t_inainte_joc) + " milisecunde.")
-        print("Numar de mutari calculator: " + str(nr_mutari_pc))
-        print("Numar de mutari jucator: " + str(nr_mutari_juc))
-        pygame.quit()
-        sys.exit()
-    # daca e randul jucatorului
-    if stare_curenta.j_curent == Joc.JMIN:
-        if t_inainte_jucator is None:
-            t_inainte_jucator = int(round(time.time() * 1000))
-        if not afisare:
-            print("\nMuta " + ("vulpe" if Joc.JMIN == 'v' else "oaie") + "\n")
-            afisare = True
-        for ev in pygame.event.get():
-            if ev.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if ev.type == pygame.MOUSEBUTTONDOWN:
-                pos = pygame.mouse.get_pos()
-                for nod in coordonateNoduri:
-                    if distEuclid(pos, nod) <= Graph.razaPct:
-                        if stare_curenta.j_curent == 'v':
-                            piesa = piesaVulpe
-                            pieseCurente = stare_curenta.tabla_joc.pieseVulpi
-                        else:
-                            piesa = piesaOaie
-                            pieseCurente = stare_curenta.tabla_joc.pieseOi
+# Player vs PC
+if game_mod == "2":
+    while True:
+        pressed_keys = pygame.key.get_pressed()
+        # daca s-a apasat escape ca sa se iasa din joc
+        if pressed_keys[K_ESCAPE]:
+            t_dupa_joc = int(round(time.time() * 1000))
+            print("Jocul a durat " + str(t_dupa_joc - t_inainte_joc) + " milisecunde.")
+            print("Numar de mutari calculator: " + str(nr_mutari_pc))
+            print("Numar de mutari jucator: " + str(nr_mutari_juc))
+            pygame.quit()
+            sys.exit()
+        # daca e randul jucatorului
+        if stare_curenta.j_curent == Joc.JMIN:
+            if t_inainte_jucator is None:
+                t_inainte_jucator = int(round(time.time() * 1000))
+            if not afisare:
+                print("\nMuta " + ("vulpe" if Joc.JMIN == 'v' else "oaie") + "\n")
+                afisare = True
+            for ev in pygame.event.get():
+                if ev.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if ev.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    for nod in coordonateNoduri:
+                        if distEuclid(pos, nod) <= Graph.razaPct:
+                            if stare_curenta.j_curent == 'v':
+                                piesa = piesaVulpe
+                                pieseCurente = stare_curenta.tabla_joc.pieseVulpi
+                            else:
+                                piesa = piesaOaie
+                                pieseCurente = stare_curenta.tabla_joc.pieseOi
 
-                        if nod not in stare_curenta.tabla_joc.pieseOi + stare_curenta.tabla_joc.pieseVulpi:
+                            if nod not in stare_curenta.tabla_joc.pieseOi + stare_curenta.tabla_joc.pieseVulpi:
 
-                            if nodPiesaSelectata:
-                                n0 = coordonateNoduri.index(nod)
-                                n1 = coordonateNoduri.index(nodPiesaSelectata)
-                                # daca e oaie si face o mutare valida
-                                if stare_curenta.j_curent == 'o' and (
-                                        (n0, n1) in Graph.muchii or (n1, n0) in Graph.muchii) and n1 > n0 - 2:
-                                    pieseCurente.remove(nodPiesaSelectata)
-                                    pieseCurente.append(nod)
-                                    nodPiesaSelectata = False
-                                    print("Tabla dupa mutarea jucatorului")
-                                    print(str(stare_curenta))
-                                    stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
-                                    afisare = False
-                                    t_dupa_jucator = int(round(time.time() * 1000))
-                                    print("Jucatorul a gandit timp de " + str(t_dupa_jucator - t_inainte_jucator) + " milisecunde.")
-                                    nr_mutari_juc += 1
-                                # daca e vulpe si nu exista oi de capturat
-                                elif not nodOaieSelectata and ((n0, n1) in Graph.muchii or (
-                                n1, n0) in Graph.muchii) and not exista_oi_de_capturat(
-                                        stare_curenta) and stare_curenta.j_curent == 'v':
-                                    pieseCurente.remove(nodPiesaSelectata)
-                                    pieseCurente.append(nod)
-                                    nodPiesaSelectata = False
-                                    print("Tabla dupa mutarea jucatorului")
-                                    print(str(stare_curenta))
-                                    stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
-                                    afisare = False
-                                    t_dupa_jucator = int(round(time.time() * 1000))
-                                    print("Jucatorul a gandit timp de " + str(t_dupa_jucator - t_inainte_jucator) + " milisecunde.")
-                                    nr_mutari_juc += 1
-                                # daca vrea sa captureze o oaie
-                                elif nodOaieSelectata:
-                                    n2 = coordonateNoduri.index(nodOaieSelectata)
-                                    # daca poate sari peste ea in linie dreapta
-                                    if ((n0, n2) in Graph.muchii or (n2, n0) in Graph.muchii) and (
-                                            (n2, n1) in Graph.muchii or (n1, n2) in Graph.muchii) and coliniare(nod,
-                                                                                                                nodPiesaSelectata,
-                                                                                                                nodOaieSelectata):
+                                if nodPiesaSelectata:
+                                    n0 = coordonateNoduri.index(nod)
+                                    n1 = coordonateNoduri.index(nodPiesaSelectata)
+                                    # daca e oaie si face o mutare valida
+                                    if stare_curenta.j_curent == 'o' and (
+                                            (n0, n1) in Graph.muchii or (n1, n0) in Graph.muchii) and n1 > n0 - 2:
                                         pieseCurente.remove(nodPiesaSelectata)
                                         pieseCurente.append(nod)
-                                        stare_curenta.tabla_joc.pieseOi.remove(nodOaieSelectata)
+                                        nodPiesaSelectata = False
+                                        print("Tabla dupa mutarea jucatorului")
+                                        print(str(stare_curenta))
+                                        stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
+                                        afisare = False
+                                        t_dupa_jucator = int(round(time.time() * 1000))
+                                        print("Jucatorul a gandit timp de " + str(t_dupa_jucator - t_inainte_jucator) + " milisecunde.")
+                                        nr_mutari_juc += 1
+                                    # daca e vulpe si nu exista oi de capturat
+                                    elif not nodOaieSelectata and ((n0, n1) in Graph.muchii or (
+                                    n1, n0) in Graph.muchii) and not exista_oi_de_capturat(
+                                            stare_curenta) and stare_curenta.j_curent == 'v':
+                                        pieseCurente.remove(nodPiesaSelectata)
+                                        pieseCurente.append(nod)
+                                        nodPiesaSelectata = False
+                                        print("Tabla dupa mutarea jucatorului")
+                                        print(str(stare_curenta))
+                                        stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
+                                        afisare = False
+                                        t_dupa_jucator = int(round(time.time() * 1000))
+                                        print("Jucatorul a gandit timp de " + str(t_dupa_jucator - t_inainte_jucator) + " milisecunde.")
+                                        nr_mutari_juc += 1
+                                    # daca vrea sa captureze o oaie
+                                    elif nodOaieSelectata:
+                                        n2 = coordonateNoduri.index(nodOaieSelectata)
+                                        # daca poate sari peste ea in linie dreapta
+                                        if ((n0, n2) in Graph.muchii or (n2, n0) in Graph.muchii) and (
+                                                (n2, n1) in Graph.muchii or (n1, n2) in Graph.muchii) and coliniare(nod,
+                                                                                                                    nodPiesaSelectata,
+                                                                                                                    nodOaieSelectata):
+                                            pieseCurente.remove(nodPiesaSelectata)
+                                            pieseCurente.append(nod)
+                                            stare_curenta.tabla_joc.pieseOi.remove(nodOaieSelectata)
+                                            nodPiesaSelectata = False
+                                            nodOaieSelectata = False
+                                            # daca nu mai exista alte oi de capturat cu aceasta piesa
+                                            nr_mutari_juc += 1
+                                            if not exista_oi_de_capturat(stare_curenta, nod):
+                                                print("Tabla dupa mutarea jucatorului")
+                                                print(str(stare_curenta))
+                                                stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
+                                                afisare = False
+                                                t_dupa_jucator = int(round(time.time() * 1000))
+                                                print("Jucatorul a gandit timp de " + str(t_dupa_jucator - t_inainte_jucator) + " milisecunde.")
+                            else:
+                                if nod in pieseCurente:
+                                    # daca deselectam piesa
+                                    if nodPiesaSelectata == nod:
                                         nodPiesaSelectata = False
                                         nodOaieSelectata = False
-                                        # daca nu mai exista alte oi de capturat cu aceasta piesa
+                                    else: # selectam piesa
+                                        nodPiesaSelectata = nod
+                                elif stare_curenta.j_curent == 'v' and nodPiesaSelectata:
+                                    if nod in stare_curenta.tabla_joc.pieseOi:
+                                        # deselectam oaie
+                                        if nodOaieSelectata == nod:
+                                            nodOaieSelectata = False
+                                        else: # selectam oaie de capturat
+                                            nodOaieSelectata = nod
+                            deseneazaEcranJoc()
+                            break
+            # daca am ajuns la finalul jocului
+            if afis_daca_final(stare_curenta):
+                break
+        else:  # jucatorul e JMAX (calculatorul)
+            t_inainte_jucator = None
+            noduri_generate = 0
+            # Mutare calculator
+            print("\nMuta " + ("vulpe" if stare_curenta.j_curent == 'v' else "oaie") + "\n")
+            # preiau timpul in milisecunde de dinainte de mutare
+            t_inainte = int(round(time.time() * 1000))
+            nr_oi_inainte = len(stare_curenta.tabla_joc.pieseOi)
+            vulpi_inainte = stare_curenta.tabla_joc.pieseVulpi
+            if tip_algoritm == '1':
+                stare_actualizata = min_max(stare_curenta)
+            else:  # tip_algoritm==2
+                stare_actualizata = alpha_beta(-500, 500, stare_curenta)
+            stare_curenta.tabla_joc = stare_actualizata.stare_aleasa.tabla_joc
+            nr_oi_curent = len(stare_curenta.tabla_joc.pieseOi)
+            print("Tabla dupa mutarea calculatorului")
+            print(str(stare_curenta))
+
+            deseneazaEcranJoc()
+            # preiau timpul in milisecunde de dupa mutare
+            t_dupa = int(round(time.time() * 1000))
+            time_arr.append(t_dupa - t_inainte)
+            nod_arr.append(noduri_generate)
+            print("Calculatorul a \"gandit\" timp de " + str(t_dupa - t_inainte) + " milisecunde.")
+            print("Timp minim: " + str(min(time_arr)))
+            print("Timp maxim: " + str(max(time_arr)))
+            print("Timp mediu: " + str(sum(time_arr)/len(time_arr)))
+            print("Timp median: " + str(statistics.median(time_arr)))
+            print("\nEstimare algoritm: " + str(stare_curenta.tabla_joc.estimeaza_scor(ADANCIME_MAX, estimare)))
+            print("\nNumar noduri generate: " + str(noduri_generate))
+            print("Noduri minim: " + str(min(nod_arr)))
+            print("Noduri maxim: " + str(max(nod_arr)))
+            print("Noduri mediu: " + str(sum(nod_arr)/len(nod_arr)))
+            print("Noduri median: " + str(statistics.median(nod_arr)))
+
+            if afis_daca_final(stare_curenta):
+                break
+
+            # S-a realizat o mutare. Schimb jucatorul cu cel opus daca nu sunt vulpe si am capturi de facut
+            vulpe = None
+            for x in stare_curenta.tabla_joc.pieseVulpi:
+                if x not in vulpi_inainte:
+                    vulpe = x
+            if not (vulpe is not None and exista_oi_de_capturat(
+                    stare_curenta, vulpe) and nr_oi_inainte != nr_oi_curent) or stare_curenta.j_curent == 'o':
+                stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
+            nr_mutari_pc += 1
+
+    t_dupa_joc = int(round(time.time() * 1000))
+
+    print("Jocul a durat " + str(t_dupa_joc - t_inainte_joc) + " milisecunde.")
+    print("Numar de mutari calculator: " + str(nr_mutari_pc))
+    print("Numar de mutari jucator: " + str(nr_mutari_juc))
+
+# PvP
+elif game_mod == "1":
+    t_inainte_jucator2 = None
+    nr_mutari_juc2 = 0
+    while True:
+        pressed_keys = pygame.key.get_pressed()
+        # daca s-a apasat escape ca sa se iasa din joc
+        if pressed_keys[K_ESCAPE]:
+            t_dupa_joc = int(round(time.time() * 1000))
+            print("Jocul a durat " + str(t_dupa_joc - t_inainte_joc) + " milisecunde.")
+            print("Numar de mutari jucator2: " + str(nr_mutari_juc2))
+            print("Numar de mutari jucator: " + str(nr_mutari_juc))
+            pygame.quit()
+            sys.exit()
+        # daca e randul jucatorului
+        if stare_curenta.j_curent == Joc.JMIN:
+            if t_inainte_jucator is None:
+                t_inainte_jucator = int(round(time.time() * 1000))
+            if not afisare:
+                print("\nMuta " + ("vulpe" if Joc.JMIN == 'v' else "oaie") + "\n")
+                afisare = True
+            for ev in pygame.event.get():
+                if ev.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if ev.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    for nod in coordonateNoduri:
+                        if distEuclid(pos, nod) <= Graph.razaPct:
+                            if stare_curenta.j_curent == 'v':
+                                piesa = piesaVulpe
+                                pieseCurente = stare_curenta.tabla_joc.pieseVulpi
+                            else:
+                                piesa = piesaOaie
+                                pieseCurente = stare_curenta.tabla_joc.pieseOi
+
+                            if nod not in stare_curenta.tabla_joc.pieseOi + stare_curenta.tabla_joc.pieseVulpi:
+
+                                if nodPiesaSelectata:
+                                    n0 = coordonateNoduri.index(nod)
+                                    n1 = coordonateNoduri.index(nodPiesaSelectata)
+                                    # daca e oaie si face o mutare valida
+                                    if stare_curenta.j_curent == 'o' and (
+                                            (n0, n1) in Graph.muchii or (n1, n0) in Graph.muchii) and n1 > n0 - 2:
+                                        pieseCurente.remove(nodPiesaSelectata)
+                                        pieseCurente.append(nod)
+                                        nodPiesaSelectata = False
+                                        print("Tabla dupa mutarea jucatorului")
+                                        print(str(stare_curenta))
+                                        stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
+                                        afisare = False
+                                        t_dupa_jucator = int(round(time.time() * 1000))
+                                        print("Jucatorul a gandit timp de " + str(t_dupa_jucator - t_inainte_jucator) + " milisecunde.")
                                         nr_mutari_juc += 1
-                                        if not exista_oi_de_capturat(stare_curenta, nod):
-                                            print("Tabla dupa mutarea jucatorului")
-                                            print(str(stare_curenta))
-                                            stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
-                                            afisare = False
-                                            t_dupa_jucator = int(round(time.time() * 1000))
-                                            print("Jucatorul a gandit timp de " + str(t_dupa_jucator - t_inainte_jucator) + " milisecunde.")
-                        else:
-                            if nod in pieseCurente:
-                                # daca deselectam piesa
-                                if nodPiesaSelectata == nod:
-                                    nodPiesaSelectata = False
-                                    nodOaieSelectata = False
-                                else: # selectam piesa
-                                    nodPiesaSelectata = nod
-                            elif stare_curenta.j_curent == 'v' and nodPiesaSelectata:
-                                if nod in stare_curenta.tabla_joc.pieseOi:
-                                    # deselectam oaie
-                                    if nodOaieSelectata == nod:
+                                    # daca e vulpe si nu exista oi de capturat
+                                    elif not nodOaieSelectata and ((n0, n1) in Graph.muchii or (
+                                    n1, n0) in Graph.muchii) and not exista_oi_de_capturat(
+                                            stare_curenta) and stare_curenta.j_curent == 'v':
+                                        pieseCurente.remove(nodPiesaSelectata)
+                                        pieseCurente.append(nod)
+                                        nodPiesaSelectata = False
+                                        print("Tabla dupa mutarea jucatorului")
+                                        print(str(stare_curenta))
+                                        stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
+                                        afisare = False
+                                        t_dupa_jucator = int(round(time.time() * 1000))
+                                        print("Jucatorul a gandit timp de " + str(t_dupa_jucator - t_inainte_jucator) + " milisecunde.")
+                                        nr_mutari_juc += 1
+                                    # daca vrea sa captureze o oaie
+                                    elif nodOaieSelectata:
+                                        n2 = coordonateNoduri.index(nodOaieSelectata)
+                                        # daca poate sari peste ea in linie dreapta
+                                        if ((n0, n2) in Graph.muchii or (n2, n0) in Graph.muchii) and (
+                                                (n2, n1) in Graph.muchii or (n1, n2) in Graph.muchii) and coliniare(nod,
+                                                                                                                    nodPiesaSelectata,
+                                                                                                                    nodOaieSelectata):
+                                            pieseCurente.remove(nodPiesaSelectata)
+                                            pieseCurente.append(nod)
+                                            stare_curenta.tabla_joc.pieseOi.remove(nodOaieSelectata)
+                                            nodPiesaSelectata = False
+                                            nodOaieSelectata = False
+                                            # daca nu mai exista alte oi de capturat cu aceasta piesa
+                                            nr_mutari_juc += 1
+                                            if not exista_oi_de_capturat(stare_curenta, nod):
+                                                print("Tabla dupa mutarea jucatorului")
+                                                print(str(stare_curenta))
+                                                stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
+                                                afisare = False
+                                                t_dupa_jucator = int(round(time.time() * 1000))
+                                                print("Jucatorul a gandit timp de " + str(t_dupa_jucator - t_inainte_jucator) + " milisecunde.")
+                            else:
+                                if nod in pieseCurente:
+                                    # daca deselectam piesa
+                                    if nodPiesaSelectata == nod:
+                                        nodPiesaSelectata = False
                                         nodOaieSelectata = False
-                                    else: # selectam oaie de capturat
-                                        nodOaieSelectata = nod
-                        deseneazaEcranJoc()
-                        break
-        # daca am ajuns la finalul jocului
-        if afis_daca_final(stare_curenta):
-            break
-    else:  # jucatorul e JMAX (calculatorul)
-        t_inainte_jucator = None
-        noduri_generate = 0
-        # Mutare calculator
-        print("\nMuta " + ("vulpe" if stare_curenta.j_curent == 'v' else "oaie") + "\n")
-        # preiau timpul in milisecunde de dinainte de mutare
-        t_inainte = int(round(time.time() * 1000))
-        nr_oi_inainte = len(stare_curenta.tabla_joc.pieseOi)
-        vulpi_inainte = stare_curenta.tabla_joc.pieseVulpi
-        if tip_algoritm == '1':
-            stare_actualizata = min_max(stare_curenta)
-        else:  # tip_algoritm==2
-            stare_actualizata = alpha_beta(-500, 500, stare_curenta)
-        stare_curenta.tabla_joc = stare_actualizata.stare_aleasa.tabla_joc
-        nr_oi_curent = len(stare_curenta.tabla_joc.pieseOi)
-        print("Tabla dupa mutarea calculatorului")
-        print(str(stare_curenta))
+                                    else: # selectam piesa
+                                        nodPiesaSelectata = nod
+                                elif stare_curenta.j_curent == 'v' and nodPiesaSelectata:
+                                    if nod in stare_curenta.tabla_joc.pieseOi:
+                                        # deselectam oaie
+                                        if nodOaieSelectata == nod:
+                                            nodOaieSelectata = False
+                                        else: # selectam oaie de capturat
+                                            nodOaieSelectata = nod
+                            deseneazaEcranJoc()
+                            break
+            # daca am ajuns la finalul jocului
+            if afis_daca_final(stare_curenta):
+                break
+        else:  # jucatorul e JMAX (calculatorul)
+            if t_inainte_jucator2 is None:
+                t_inainte_jucator2 = int(round(time.time() * 1000))
+            if not afisare:
+                print("\nMuta " + ("vulpe" if Joc.JMIN == 'v' else "oaie") + "\n")
+                afisare = True
+            for ev in pygame.event.get():
+                if ev.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if ev.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    for nod in coordonateNoduri:
+                        if distEuclid(pos, nod) <= Graph.razaPct:
+                            if stare_curenta.j_curent == 'v':
+                                piesa = piesaVulpe
+                                pieseCurente = stare_curenta.tabla_joc.pieseVulpi
+                            else:
+                                piesa = piesaOaie
+                                pieseCurente = stare_curenta.tabla_joc.pieseOi
 
-        deseneazaEcranJoc()
-        # preiau timpul in milisecunde de dupa mutare
-        t_dupa = int(round(time.time() * 1000))
-        time_arr.append(t_dupa - t_inainte)
-        nod_arr.append(noduri_generate)
-        print("Calculatorul a \"gandit\" timp de " + str(t_dupa - t_inainte) + " milisecunde.")
-        print("Timp minim: " + str(min(time_arr)))
-        print("Timp maxim: " + str(max(time_arr)))
-        print("Timp mediu: " + str(sum(time_arr)/len(time_arr)))
-        print("Timp median: " + str(statistics.median(time_arr)))
-        print("\nEstimare algoritm: " + str(stare_curenta.tabla_joc.estimeaza_scor(ADANCIME_MAX, estimare)))
-        print("\nNumar noduri generate: " + str(noduri_generate))
-        print("Noduri minim: " + str(min(nod_arr)))
-        print("Noduri maxim: " + str(max(nod_arr)))
-        print("Noduri mediu: " + str(sum(nod_arr)/len(nod_arr)))
-        print("Noduri median: " + str(statistics.median(nod_arr)))
+                            if nod not in stare_curenta.tabla_joc.pieseOi + stare_curenta.tabla_joc.pieseVulpi:
 
-        if afis_daca_final(stare_curenta):
-            break
+                                if nodPiesaSelectata:
+                                    n0 = coordonateNoduri.index(nod)
+                                    n1 = coordonateNoduri.index(nodPiesaSelectata)
+                                    # daca e oaie si face o mutare valida
+                                    if stare_curenta.j_curent == 'o' and (
+                                            (n0, n1) in Graph.muchii or (n1, n0) in Graph.muchii) and n1 > n0 - 2:
+                                        pieseCurente.remove(nodPiesaSelectata)
+                                        pieseCurente.append(nod)
+                                        nodPiesaSelectata = False
+                                        print("Tabla dupa mutarea jucatorului")
+                                        print(str(stare_curenta))
+                                        stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
+                                        afisare = False
+                                        t_dupa_jucator2 = int(round(time.time() * 1000))
+                                        print("Jucatorul a gandit timp de " + str(
+                                            t_dupa_jucator2 - t_inainte_jucator2) + " milisecunde.")
+                                        nr_mutari_juc2 += 1
+                                    # daca e vulpe si nu exista oi de capturat
+                                    elif not nodOaieSelectata and ((n0, n1) in Graph.muchii or (
+                                            n1, n0) in Graph.muchii) and not exista_oi_de_capturat(
+                                        stare_curenta) and stare_curenta.j_curent == 'v':
+                                        pieseCurente.remove(nodPiesaSelectata)
+                                        pieseCurente.append(nod)
+                                        nodPiesaSelectata = False
+                                        print("Tabla dupa mutarea jucatorului")
+                                        print(str(stare_curenta))
+                                        stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
+                                        afisare = False
+                                        t_dupa_jucator2 = int(round(time.time() * 1000))
+                                        print("Jucatorul a gandit timp de " + str(
+                                            t_dupa_jucator2 - t_inainte_jucator2) + " milisecunde.")
+                                        nr_mutari_juc2 += 1
+                                    # daca vrea sa captureze o oaie
+                                    elif nodOaieSelectata:
+                                        n2 = coordonateNoduri.index(nodOaieSelectata)
+                                        # daca poate sari peste ea in linie dreapta
+                                        if ((n0, n2) in Graph.muchii or (n2, n0) in Graph.muchii) and (
+                                                (n2, n1) in Graph.muchii or (n1, n2) in Graph.muchii) and coliniare(nod,
+                                                                                                                    nodPiesaSelectata,
+                                                                                                                    nodOaieSelectata):
+                                            pieseCurente.remove(nodPiesaSelectata)
+                                            pieseCurente.append(nod)
+                                            stare_curenta.tabla_joc.pieseOi.remove(nodOaieSelectata)
+                                            nodPiesaSelectata = False
+                                            nodOaieSelectata = False
+                                            # daca nu mai exista alte oi de capturat cu aceasta piesa
+                                            nr_mutari_juc2 += 1
+                                            if not exista_oi_de_capturat(stare_curenta, nod):
+                                                print("Tabla dupa mutarea jucatorului")
+                                                print(str(stare_curenta))
+                                                stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
+                                                afisare = False
+                                                t_dupa_jucator2 = int(round(time.time() * 1000))
+                                                print("Jucatorul a gandit timp de " + str(
+                                                    t_dupa_jucator2 - t_inainte_jucator2) + " milisecunde.")
+                            else:
+                                if nod in pieseCurente:
+                                    # daca deselectam piesa
+                                    if nodPiesaSelectata == nod:
+                                        nodPiesaSelectata = False
+                                        nodOaieSelectata = False
+                                    else:  # selectam piesa
+                                        nodPiesaSelectata = nod
+                                elif stare_curenta.j_curent == 'v' and nodPiesaSelectata:
+                                    if nod in stare_curenta.tabla_joc.pieseOi:
+                                        # deselectam oaie
+                                        if nodOaieSelectata == nod:
+                                            nodOaieSelectata = False
+                                        else:  # selectam oaie de capturat
+                                            nodOaieSelectata = nod
+                            deseneazaEcranJoc()
+                            break
+            # daca am ajuns la finalul jocului
+            if afis_daca_final(stare_curenta):
+                break
 
-        # S-a realizat o mutare. Schimb jucatorul cu cel opus daca nu sunt vulpe si am capturi de facut
-        vulpe = None
-        for x in stare_curenta.tabla_joc.pieseVulpi:
-            if x not in vulpi_inainte:
-                vulpe = x
-        if not (vulpe is not None and exista_oi_de_capturat(
-                stare_curenta, vulpe) and nr_oi_inainte != nr_oi_curent) or stare_curenta.j_curent == 'o':
-            stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
-        nr_mutari_pc += 1
+    t_dupa_joc = int(round(time.time() * 1000))
 
-t_dupa_joc = int(round(time.time() * 1000))
+    print("Jocul a durat " + str(t_dupa_joc - t_inainte_joc) + " milisecunde.")
+    print("Numar de mutari jucator2: " + str(nr_mutari_juc2))
+    print("Numar de mutari jucator: " + str(nr_mutari_juc))
 
-print("Jocul a durat " + str(t_dupa_joc - t_inainte_joc) + " milisecunde.")
-print("Numar de mutari calculator: " + str(nr_mutari_pc))
-print("Numar de mutari jucator: " + str(nr_mutari_juc))
+# PC vs PC
+else:
 
+    # initializare tabla
+    tabla_curenta2 = Joc()
+    tabla_curenta2.JMAX = 'v' if Joc.JMIN == 'v' else 'o'
+    tabla_curenta2.JMIN = 'o' if tabla_curenta2.JMAX == 'v' else 'o'
+    stare_curenta2 = Stare(tabla_curenta2, primul_jucator, ADANCIME_MAX)
+
+    time_arr2 = []
+    nod_arr2 = []
+    nr_mutari_pc2 = 0
+    print(tabla_curenta.JMAX, tabla_curenta2.JMAX)
+    print(stare_curenta.j_curent, stare_curenta2.j_curent)
+    while True:
+        pressed_keys = pygame.key.get_pressed()
+        # daca s-a apasat escape ca sa se iasa din joc
+        if pressed_keys[K_ESCAPE]:
+            t_dupa_joc = int(round(time.time() * 1000))
+            print("Jocul a durat " + str(t_dupa_joc - t_inainte_joc) + " milisecunde.")
+            print("Numar de mutari calculator: " + str(nr_mutari_pc))
+            print("Numar de mutari calculator2: " + str(nr_mutari_pc2))
+            pygame.quit()
+            sys.exit()
+        # daca e randul jucatorului
+        if stare_curenta2.j_curent == tabla_curenta2.JMAX:
+            noduri_generate = 0
+            # Mutare calculator"
+            print("\nMuta " + ("vulpe" if stare_curenta2.j_curent == 'v' else "oaie") + "\n")
+            # preiau timpul in milisecunde de dinainte de mutare
+            t_inainte = int(round(time.time() * 1000))
+            nr_oi_inainte = len(stare_curenta2.tabla_joc.pieseOi)
+            vulpi_inainte = stare_curenta2.tabla_joc.pieseVulpi
+            if tip_algoritm == '1':
+                stare_actualizata = min_max(stare_curenta2)
+            else:  # tip_algoritm==2
+                stare_actualizata = alpha_beta(-500, 500, stare_curenta2)
+            stare_curenta2.tabla_joc = stare_actualizata.stare_aleasa.tabla_joc
+            stare_curenta.tabla_joc = stare_actualizata.stare_aleasa.tabla_joc
+            nr_oi_curent = len(stare_curenta2.tabla_joc.pieseOi)
+            print("Tabla dupa mutarea calculatorului2")
+            print(str(stare_curenta2))
+
+            deseneazaEcranJoc()
+            # preiau timpul in milisecunde de dupa mutare
+            t_dupa = int(round(time.time() * 1000))
+            time_arr2.append(t_dupa - t_inainte)
+            nod_arr2.append(noduri_generate)
+            print("Calculatorul2 a \"gandit\" timp de " + str(t_dupa - t_inainte) + " milisecunde.")
+            print("Timp minim: " + str(min(time_arr2)))
+            print("Timp maxim: " + str(max(time_arr2)))
+            print("Timp mediu: " + str(sum(time_arr2) / len(time_arr2)))
+            print("Timp median: " + str(statistics.median(time_arr2)))
+            print("\nEstimare algoritm: " + str(stare_curenta2.tabla_joc.estimeaza_scor(ADANCIME_MAX, estimare)))
+            print("\nNumar noduri generate: " + str(noduri_generate))
+            print("Noduri minim: " + str(min(nod_arr2)))
+            print("Noduri maxim: " + str(max(nod_arr2)))
+            print("Noduri mediu: " + str(sum(nod_arr2) / len(nod_arr2)))
+            print("Noduri median: " + str(statistics.median(nod_arr2)))
+
+            if afis_daca_final(stare_curenta2):
+                break
+
+            # S-a realizat o mutare. Schimb jucatorul cu cel opus daca nu sunt vulpe si am capturi de facut
+            vulpe = None
+            for x in stare_curenta2.tabla_joc.pieseVulpi:
+                if x not in vulpi_inainte:
+                    vulpe = x
+            if not (vulpe is not None and exista_oi_de_capturat(
+                    stare_curenta2, vulpe) and nr_oi_inainte != nr_oi_curent) or stare_curenta2.j_curent == 'o':
+                stare_curenta2.j_curent = Joc.jucator_opus(stare_curenta2.j_curent)
+                stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
+                estimare = "2" if estimare == "1" else "1"
+            nr_mutari_pc2 += 1
+        else:
+            t_inainte_jucator = None
+            noduri_generate = 0
+            # Mutare calculator
+            print("\nMuta " + ("vulpe" if stare_curenta.j_curent == 'v' else "oaie") + "\n")
+            # preiau timpul in milisecunde de dinainte de mutare
+            t_inainte = int(round(time.time() * 1000))
+            nr_oi_inainte = len(stare_curenta.tabla_joc.pieseOi)
+            vulpi_inainte = stare_curenta.tabla_joc.pieseVulpi
+            if tip_algoritm == '1':
+                stare_actualizata = min_max(stare_curenta)
+            else:  # tip_algoritm==2
+                stare_actualizata = alpha_beta(-500, 500, stare_curenta)
+            stare_curenta.tabla_joc = stare_actualizata.stare_aleasa.tabla_joc
+            stare_curenta2.tabla_joc = stare_actualizata.stare_aleasa.tabla_joc
+            nr_oi_curent = len(stare_curenta.tabla_joc.pieseOi)
+            print("Tabla dupa mutarea calculatorului")
+            print(str(stare_curenta))
+
+            deseneazaEcranJoc()
+            # preiau timpul in milisecunde de dupa mutare
+            t_dupa = int(round(time.time() * 1000))
+            time_arr.append(t_dupa - t_inainte)
+            nod_arr.append(noduri_generate)
+            print("Calculatorul a \"gandit\" timp de " + str(t_dupa - t_inainte) + " milisecunde.")
+            print("Timp minim: " + str(min(time_arr)))
+            print("Timp maxim: " + str(max(time_arr)))
+            print("Timp mediu: " + str(sum(time_arr)/len(time_arr)))
+            print("Timp median: " + str(statistics.median(time_arr)))
+            print("\nEstimare algoritm: " + str(stare_curenta.tabla_joc.estimeaza_scor(ADANCIME_MAX, estimare)))
+            print("\nNumar noduri generate: " + str(noduri_generate))
+            print("Noduri minim: " + str(min(nod_arr)))
+            print("Noduri maxim: " + str(max(nod_arr)))
+            print("Noduri mediu: " + str(sum(nod_arr)/len(nod_arr)))
+            print("Noduri median: " + str(statistics.median(nod_arr)))
+
+            if afis_daca_final(stare_curenta):
+                break
+
+            # S-a realizat o mutare. Schimb jucatorul cu cel opus daca nu sunt vulpe si am capturi de facut
+            vulpe = None
+            for x in stare_curenta.tabla_joc.pieseVulpi:
+                if x not in vulpi_inainte:
+                    vulpe = x
+            if not (vulpe is not None and exista_oi_de_capturat(
+                    stare_curenta, vulpe) and nr_oi_inainte != nr_oi_curent) or stare_curenta.j_curent == 'o':
+                stare_curenta.j_curent = Joc.jucator_opus(stare_curenta.j_curent)
+                stare_curenta2.j_curent = Joc.jucator_opus(stare_curenta2.j_curent)
+                estimare = "2" if estimare == "1" else "1"
+            nr_mutari_pc += 1
+
+    t_dupa_joc = int(round(time.time() * 1000))
+
+    print("Jocul a durat " + str(t_dupa_joc - t_inainte_joc) + " milisecunde.")
+    print("Numar de mutari calculator: " + str(nr_mutari_pc))
+    print("Numar de mutari calculator2: " + str(nr_mutari_pc2))
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
