@@ -5,14 +5,24 @@ import copy
 import time
 import statistics
 
+from pygame import K_SPACE, K_ESCAPE
+
 
 def marcheaza_oi():
+    """
+    functie care marcheaza oile daca au castigat
+    :return:
+    """
     for nod in stare_curenta.tabla_joc.pieseOi:
         ecran.blit(piesaSelectata, (nod[0] - Graph.razaPiesa, nod[1] - Graph.razaPiesa))
     pygame.display.update()
 
 
 def marcheaza_vulpi():
+    """
+    functie care marcheaza vulpile daca au castigat
+    :return:
+    """
     for nod in stare_curenta.tabla_joc.pieseVulpi:
         ecran.blit(piesaSelectata, (nod[0] - Graph.razaPiesa, nod[1] - Graph.razaPiesa))
     pygame.display.update()
@@ -21,7 +31,7 @@ def marcheaza_vulpi():
 def afis_daca_final(stare_curenta):
     """
     functie de verificare a starii finale
-    :param stare_curenta:
+    :param stare_curenta: starea in care ne aflam
     :return: True daca este o sare finala
     """
     final = stare_curenta.tabla_joc.final()
@@ -35,9 +45,9 @@ def afis_daca_final(stare_curenta):
 def coliniare(p, q, r):
     """
     functie care verifica daca 3 puncte sunt coliniare prin calcularea determinantului
-    :param p:
-    :param q:
-    :param r:
+    :param p: primul punct de coordonate
+    :param q: al doilea punct
+    :param r: al treailea punct
     :return: True daca determinantul este 0
     """
     p1, p2 = p[0], p[1]
@@ -52,12 +62,13 @@ def coliniare(p, q, r):
 def exista_oi_de_capturat(stare, x=None):
     """
     functie care verifica daca exista oi de capturat
-    :param stare:
+    :param stare: starea pentru care calculam
     :return: True daca exista oi ce pot fi capturate
     """
     if x is not None:
         vulpe = ((x[0] - Graph.translatie) // Graph.scalare, (x[1] - Graph.translatie) // Graph.scalare)
         index_punct_vulpe = Graph.noduri.index(vulpe)
+        # pentru fiecare muchie
         for muchie in Graph.muchii:
             nod = None
             if muchie[0] == index_punct_vulpe:
@@ -66,6 +77,7 @@ def exista_oi_de_capturat(stare, x=None):
             elif muchie[1] == index_punct_vulpe:
                 nod = [Graph.noduri[muchie[0]][0] * Graph.scalare + Graph.translatie,
                        Graph.noduri[muchie[0]][1] * Graph.scalare + Graph.translatie]
+            #aca gasim un nod care e in legatura directa cu vulpea si e oaie
             if nod is not None and nod in stare.tabla_joc.pieseOi:
                 # print("OAIE")
                 oaie = (
@@ -79,6 +91,7 @@ def exista_oi_de_capturat(stare, x=None):
                     elif muchie2[1] == index_punct_oaie:
                         nod2 = [Graph.noduri[muchie2[0]][0] * Graph.scalare + Graph.translatie,
                                 Graph.noduri[muchie2[0]][1] * Graph.scalare + Graph.translatie]
+                    # daca dupa oaie avem spatiu in linie dreapta astfel incat sa putem sari cu vulpea
                     if nod2 is not None and nod2 not in stare.tabla_joc.pieseOi + stare.tabla_joc.pieseVulpi and coliniare(
                             x, nod, nod2):
                         return True
@@ -115,6 +128,12 @@ def exista_oi_de_capturat(stare, x=None):
 
 
 def nr_oi_in_pericol(pieseOi, pieseVulpi):
+    """
+    functie care calculeaza cate oi sunt in pericol de capturare
+    :param pieseOi: lista de pozitii cu oi
+    :param pieseVulpi: lista de pozitii cu vulpi
+    :return: numarul de oi in pericol
+    """
     nr = 0
     for x in pieseVulpi:
         vulpe = ((x[0] - Graph.translatie) // Graph.scalare, (x[1] - Graph.translatie) // Graph.scalare)
@@ -144,10 +163,13 @@ def nr_oi_in_pericol(pieseOi, pieseVulpi):
                             x, nod, nod2):
                         nr += 1
     return nr
+
+
 def numara_piese_in_patrat(listaOi, listaVulpi):
     """
     functie care numara cate piese au ajuns in patratul de sus
-    :param listaOi:
+    :param listaOi: lista de pozitii pt piesele oi
+    :param listaVulpi: lista de pozitii pt piesele vulpe
     :return: nr de piese din patratul de sus
     """
     nr = 0
@@ -164,7 +186,7 @@ def numara_piese_in_patrat(listaOi, listaVulpi):
 
 class Joc:
     """
-    Clasa care defineste jocul. Se va schimba de la un joc la altul.
+    Clasa care defineste jocul.
     """
     JMIN = None
     JMAX = None
@@ -180,16 +202,23 @@ class Joc:
         return cls.JMAX if jucator == cls.JMIN else cls.JMIN
 
     def final(self):
+        """
+        functie care testeaza daca am ajuns la finalul jocului
+        :return: v - au castigat vulpile | o - au castigat oilea | False - nu s-a ajuns intr-o stare finala
+        """
         rez = False
+        # daca au ramas oi mai putine de 9
         if len(self.pieseOi) < 9:
             rez = "v"
             marcheaza_vulpi()
+        # daca am umplut patratul de sus
         if numara_piese_in_patrat(self.pieseOi, self.pieseVulpi) == 9:
             posibilitate_captura = False
             for x in self.pieseVulpi:
                 vulpe = ((x[0] - Graph.translatie) // Graph.scalare, (x[1] - Graph.translatie) // Graph.scalare)
                 if vulpe in Graph.noduri[:6] + Graph.noduri[8:11] and exista_oi_de_capturat(stare_curenta, x):
                     posibilitate_captura = True
+            # daca in patratul de sus nu exista vulpi care sa ne poate captura oile
             if not posibilitate_captura:
                 rez = "o"
                 marcheaza_oi()
@@ -200,20 +229,25 @@ class Joc:
 
     def mutari(self, jucator_opus):
         """
-
-        :param jucator_opus:
-        :return:
+        functie pentru generarea mutarilor posibile
+        :param jucator_opus: id-ul jucatorului opus
+        :return: lista de mutari posibile
         """
 
         l_mutari = []
+        # daca jucatorul opus e oaie
         if jucator_opus == 'o':
+            # pentru fiecare oaie existenta pe tabla generam toate mutarile posibile
             for x in self.pieseOi:
                 oaie = ((x[0] - Graph.translatie) // Graph.scalare, (x[1] - Graph.translatie) // Graph.scalare)
                 index_punct_oaie = Graph.noduri.index(oaie)
+                # pentru toate muchiile din graf
                 for muchie in Graph.muchii:
+                    # verificam e o muchie pe care putem merge
                     if muchie[0] == index_punct_oaie:
                         nod = [Graph.noduri[muchie[1]][0] * Graph.scalare + Graph.translatie,
                                Graph.noduri[muchie[1]][1] * Graph.scalare + Graph.translatie]
+                        # verificam daca e liber si ne deplasam in orice directie, dar nu in jos
                         if muchie[1] - 2 < muchie[0] and nod not in self.pieseOi + self.pieseVulpi:
                             lista_oi_noua = copy.deepcopy(self.pieseOi)
                             lista_oi_noua.remove(x)
@@ -222,14 +256,17 @@ class Joc:
                     elif muchie[1] == index_punct_oaie:
                         nod = [Graph.noduri[muchie[0]][0] * Graph.scalare + Graph.translatie,
                                Graph.noduri[muchie[0]][1] * Graph.scalare + Graph.translatie]
+                        # verificam daca e liber si ne deplasam in orice directie, dar nu in jos
                         if muchie[0] - 2 < muchie[1] and nod not in self.pieseOi + self.pieseVulpi:
                             lista_oi_noua = copy.deepcopy(self.pieseOi)
                             lista_oi_noua.remove(x)
                             lista_oi_noua.append(nod)
                             l_mutari.append(Joc(lista_oi_noua, self.pieseVulpi))
+        # daca jucatorul opus e vulpe
         elif jucator_opus == 'v':
             # presupunem ca nu putem captura oi
             ok = False
+            # pentru fiecare vulpe
             for x in self.pieseVulpi:
                 vulpe = ((x[0] - Graph.translatie) // Graph.scalare, (x[1] - Graph.translatie) // Graph.scalare)
                 index_punct_vulpe = Graph.noduri.index(vulpe)
@@ -241,11 +278,13 @@ class Joc:
                     elif muchie[1] == index_punct_vulpe:
                         nod = [Graph.noduri[muchie[0]][0] * Graph.scalare + Graph.translatie,
                                Graph.noduri[muchie[0]][1] * Graph.scalare + Graph.translatie]
+                    # daca e spatiu liber si putem muta pe linie
                     if nod is not None and nod not in self.pieseOi + self.pieseVulpi and not ok:
                         lista_vulpi_noua = copy.deepcopy(self.pieseVulpi)
                         lista_vulpi_noua.remove(x)
                         lista_vulpi_noua.append(nod)
                         l_mutari.append(Joc(self.pieseOi, lista_vulpi_noua))
+                    # daca la acea pozitie exista o oaie
                     elif nod is not None and nod in self.pieseOi:
                         oaie = (
                             (nod[0] - Graph.translatie) // Graph.scalare, (nod[1] - Graph.translatie) // Graph.scalare)
@@ -258,6 +297,7 @@ class Joc:
                             elif muchie2[1] == index_punct_oaie:
                                 nod2 = [Graph.noduri[muchie2[0]][0] * Graph.scalare + Graph.translatie,
                                         Graph.noduri[muchie2[0]][1] * Graph.scalare + Graph.translatie]
+                            # daca exista spatiu in linie dreapta astfel incat sa putem sa sarim peste acea oaie (capturam)
                             if nod2 is not None and nod2 not in self.pieseOi + self.pieseVulpi and coliniare(x, nod,
                                                                                                              nod2):
                                 if not ok:
@@ -274,21 +314,36 @@ class Joc:
         return l_mutari
 
     def estimeaza_scor(self, adancime, mod):
-
+        """
+        functie de estimare a scorului
+        :param adancime: adancimea din arbore
+        :param mod: modul de calculare al estimarii (1 sau 2)
+        :return: scorul estimat
+        """
         t_final = self.final()
+        # daca am castigat
         if t_final == self.__class__.JMAX:
             return 99 + adancime
+        # daca a castigat oponentul
         elif t_final == self.__class__.JMIN:
             return -99 - adancime
         elif mod == "1":
+            # daca e vulple, atunci trebuie sa prioritizam instantele in care reducem numarul de oi si numarul de piese ce au intrat in patratul de sus
             if self.JMAX == 'v':
+                # scadeam din numarul de oi capturate numarul de piese ce au intrat in patratul de sus
+                # astfel vom incuraja capturarea de oi si blocare lor in incercarea de a intra in patrat
                 return 20 - len(self.pieseOi) - numara_piese_in_patrat(self.pieseOi, self.pieseVulpi)
             else:
+                # daca e oaie, prioritisam dupa numarul de oi intrate in patrat si ramase in viata, deci le adunam intre ele
+                # astfel vom incuraja mentinerea numarului de oi si intrarea lor in patrat
                 return len(self.pieseOi) + numara_piese_in_patrat(self.pieseOi, self.pieseVulpi)
         else:
             if self.JMAX == 'v':
+                # din numarul de oi capturate scadem numarul de piese din patrat, dar adunam numarul de oi aflate in pericol deoarece le putem captura reducand astfel sansele oponentului
                 return 20 - len(self.pieseOi) + nr_oi_in_pericol(self.pieseOi, self.pieseVulpi) - numara_piese_in_patrat(self.pieseOi, self.pieseVulpi)
             else:
+                # adunam numarul de oi ramase in viata cu numarul de piese din patrat, dar scadem numarul de oi aflate in pericol deoarece disparitia lor ne reduce sansa de a castiga
+                # in plus fata de estimarea precedenta, penalizam deoarece exista oi aflate in pericol de capturare
                 return len(self.pieseOi) + numara_piese_in_patrat(self.pieseOi, self.pieseVulpi) - nr_oi_in_pericol(self.pieseOi, self.pieseVulpi)
 
     def __str__(self):
@@ -358,6 +413,11 @@ class Stare:
 
 
 def min_max(stare):
+    """
+    algoritmul min-max
+    :param stare: primeste starea pentru care calculam
+    :return: starea modificata (noua stare)
+    """
     if stare.adancime == 0 or stare.tabla_joc.final():
         stare.estimare = stare.tabla_joc.estimeaza_scor(stare.adancime, estimare)
         return stare
@@ -365,6 +425,7 @@ def min_max(stare):
     # calculez toate mutarile posibile din starea curenta
     stare.mutari_posibile = stare.mutari()
     global noduri_generate
+    # crestem numarul de noduri generate
     noduri_generate += len(stare.mutari_posibile)
     # aplic algoritmul minimax pe toate mutarile posibile (calculand astfel subarborii lor)
     mutariCuEstimare = [min_max(mutare) for mutare in stare.mutari_posibile]
@@ -380,6 +441,13 @@ def min_max(stare):
 
 
 def alpha_beta(alpha, beta, stare):
+    """
+    algoritmul alpha-beta
+    :param alpha: capatul din stanga al intervalului
+    :param beta: capatul din dreapta al intervalului
+    :param stare: starea pentru care calculam
+    :return: noua stare
+    """
     if stare.adancime == 0 or stare.tabla_joc.final():
         stare.estimare = stare.tabla_joc.estimeaza_scor(stare.adancime, estimare)
         return stare
@@ -389,6 +457,7 @@ def alpha_beta(alpha, beta, stare):
 
     stare.mutari_posibile = stare.mutari()
     global noduri_generate
+    # crestem numarul de noduri generate
     noduri_generate += len(stare.mutari_posibile)
     if stare.j_curent == Joc.JMAX:
         estimare_curenta = float('-inf')
@@ -397,10 +466,10 @@ def alpha_beta(alpha, beta, stare):
             # calculeaza estimarea pentru starea noua, realizand subarborele
             stare_noua = alpha_beta(alpha, beta, mutare)
 
-            if (estimare_curenta < stare_noua.estimare):
+            if estimare_curenta < stare_noua.estimare:
                 stare.stare_aleasa = stare_noua
                 estimare_curenta = stare_noua.estimare
-            if (alpha < stare_noua.estimare):
+            if alpha < stare_noua.estimare:
                 alpha = stare_noua.estimare
                 if alpha >= beta:
                     break
@@ -412,11 +481,11 @@ def alpha_beta(alpha, beta, stare):
 
             stare_noua = alpha_beta(alpha, beta, mutare)
 
-            if (estimare_curenta > stare_noua.estimare):
+            if estimare_curenta > stare_noua.estimare:
                 stare.stare_aleasa = stare_noua
                 estimare_curenta = stare_noua.estimare
 
-            if (beta > stare_noua.estimare):
+            if beta > stare_noua.estimare:
                 beta = stare_noua.estimare
                 if alpha >= beta:
                     break
@@ -426,6 +495,12 @@ def alpha_beta(alpha, beta, stare):
 
 
 def distEuclid(p0, p1):
+    """
+    functie de calculat distanta dintre 2 puncte
+    :param p0: primul punct de coordonate
+    :param p1: al doilea punct
+    :return:
+    """
     (x0, y0) = p0
     (x1, y1) = p1
     return math.sqrt((x0 - x1) ** 2 + (y0 - y1) ** 2)
@@ -508,10 +583,14 @@ coordonateNoduri = [[Graph.translatie + Graph.scalare * x for x in nod] for nod 
 
 
 def deseneazaEcranJoc():
+    """
+    functia care deseneaza exrtanul jocului
+    :return:
+    """
     ecran.fill(culoareEcran)
     for nod in coordonateNoduri:
         pygame.draw.circle(surface=ecran, color=culoareLinii, center=nod, radius=Graph.razaPct,
-                           width=0)  # width=0 face un cerc plin
+                           width=0)
 
     for muchie in Graph.muchii:
         p0 = coordonateNoduri[muchie[0]]
@@ -601,6 +680,11 @@ class GrupButoane:
 
 
 def deseneaza_alegeri(display):
+    """
+    functie de desenare a butoanelor pentru ca utilizatorul sa aleaga
+    :param display: ecranul din pygame (fereastra)
+    :return: alegerile facute de utilizator
+    """
     btn_alg = GrupButoane(
         top=30,
         left=30,
@@ -630,7 +714,7 @@ def deseneaza_alegeri(display):
         left=30,
         listaButoane=[
             Buton(display=display, w=125, h=30, text="Incepator", valoare="1"),
-            Buton(display=display, w=125, h=30, text="Mediu", valoare="2"),
+            Buton(display=display, w=125, h=30, text="Mediu", valoare="3"),
             Buton(display=display, w=125, h=30, text="Avansat", valoare="4"),
         ],
         indiceSelectat=1)
@@ -688,19 +772,20 @@ noduri_generate = 0
 nr_mutari_pc = 0
 nr_mutari_juc = 0
 t_inainte_joc = int(round(time.time() * 1000))
-# print(len(tabla_curenta.mutari("v")))
-# print(len(joc.mutari("O")))
-# print(numara_oi_in_patrat([ [320, 20], [220, 120], [220, 20], [420, 20], [320, 120], [220, 220], [420, 120], [420, 220], [320, 220]]))
 
-# joc.pieseOi = [ [320, 20], [220, 120], [220, 20], [420, 20], [320, 120], [220, 220], [420, 120], [420, 220], [320, 220]]
-# print(joc.final())
-
-# print("Muta " + ("vulpe" if rand else "oaie"))
 afisare = False
 t_inainte_jucator = None
 while True:
-    # if verifica_oi(joc.pieseOi) == True:
-    # print(True)
+    pressed_keys = pygame.key.get_pressed()
+    # daca s-a apasat escape ca sa se iasa din joc
+    if pressed_keys[K_ESCAPE]:
+        t_dupa_joc = int(round(time.time() * 1000))
+        print("Jocul a durat " + str(t_dupa_joc - t_inainte_joc) + " milisecunde.")
+        print("Numar de mutari calculator: " + str(nr_mutari_pc))
+        print("Numar de mutari jucator: " + str(nr_mutari_juc))
+        pygame.quit()
+        sys.exit()
+    # daca e randul jucatorului
     if stare_curenta.j_curent == Joc.JMIN:
         if t_inainte_jucator is None:
             t_inainte_jucator = int(round(time.time() * 1000))
@@ -715,26 +800,23 @@ while True:
                 pos = pygame.mouse.get_pos()
                 for nod in coordonateNoduri:
                     if distEuclid(pos, nod) <= Graph.razaPct:
-                        # print(len(stare_curenta.tabla_joc.mutari("V")))
                         if stare_curenta.j_curent == 'v':
                             piesa = piesaVulpe
                             pieseCurente = stare_curenta.tabla_joc.pieseVulpi
                         else:
                             piesa = piesaOaie
                             pieseCurente = stare_curenta.tabla_joc.pieseOi
-                        # print(pieseCurente)
 
                         if nod not in stare_curenta.tabla_joc.pieseOi + stare_curenta.tabla_joc.pieseVulpi:
 
                             if nodPiesaSelectata:
                                 n0 = coordonateNoduri.index(nod)
                                 n1 = coordonateNoduri.index(nodPiesaSelectata)
+                                # daca e oaie si face o mutare valida
                                 if stare_curenta.j_curent == 'o' and (
                                         (n0, n1) in Graph.muchii or (n1, n0) in Graph.muchii) and n1 > n0 - 2:
                                     pieseCurente.remove(nodPiesaSelectata)
                                     pieseCurente.append(nod)
-                                    # rand = 1 - rand
-                                    # print("Muta " + ("vulpe" if rand else "oaie"))
                                     nodPiesaSelectata = False
                                     print("Tabla dupa mutarea jucatorului")
                                     print(str(stare_curenta))
@@ -743,13 +825,12 @@ while True:
                                     t_dupa_jucator = int(round(time.time() * 1000))
                                     print("Jucatorul a gandit timp de " + str(t_dupa_jucator - t_inainte_jucator) + " milisecunde.")
                                     nr_mutari_juc += 1
+                                # daca e vulpe si nu exista oi de capturat
                                 elif not nodOaieSelectata and ((n0, n1) in Graph.muchii or (
                                 n1, n0) in Graph.muchii) and not exista_oi_de_capturat(
                                         stare_curenta) and stare_curenta.j_curent == 'v':
                                     pieseCurente.remove(nodPiesaSelectata)
                                     pieseCurente.append(nod)
-                                    # rand = 1 - rand
-                                    # print("Muta " + ("vulpe" if rand else "oaie"))
                                     nodPiesaSelectata = False
                                     print("Tabla dupa mutarea jucatorului")
                                     print(str(stare_curenta))
@@ -758,8 +839,10 @@ while True:
                                     t_dupa_jucator = int(round(time.time() * 1000))
                                     print("Jucatorul a gandit timp de " + str(t_dupa_jucator - t_inainte_jucator) + " milisecunde.")
                                     nr_mutari_juc += 1
+                                # daca vrea sa captureze o oaie
                                 elif nodOaieSelectata:
                                     n2 = coordonateNoduri.index(nodOaieSelectata)
+                                    # daca poate sari peste ea in linie dreapta
                                     if ((n0, n2) in Graph.muchii or (n2, n0) in Graph.muchii) and (
                                             (n2, n1) in Graph.muchii or (n1, n2) in Graph.muchii) and coliniare(nod,
                                                                                                                 nodPiesaSelectata,
@@ -769,6 +852,8 @@ while True:
                                         stare_curenta.tabla_joc.pieseOi.remove(nodOaieSelectata)
                                         nodPiesaSelectata = False
                                         nodOaieSelectata = False
+                                        # daca nu mai exista alte oi de capturat cu aceasta piesa
+                                        nr_mutari_juc += 1
                                         if not exista_oi_de_capturat(stare_curenta, nod):
                                             print("Tabla dupa mutarea jucatorului")
                                             print(str(stare_curenta))
@@ -776,23 +861,24 @@ while True:
                                             afisare = False
                                             t_dupa_jucator = int(round(time.time() * 1000))
                                             print("Jucatorul a gandit timp de " + str(t_dupa_jucator - t_inainte_jucator) + " milisecunde.")
-                                            nr_mutari_juc += 1
                         else:
                             if nod in pieseCurente:
+                                # daca deselectam piesa
                                 if nodPiesaSelectata == nod:
                                     nodPiesaSelectata = False
                                     nodOaieSelectata = False
-                                else:
+                                else: # selectam piesa
                                     nodPiesaSelectata = nod
                             elif stare_curenta.j_curent == 'v' and nodPiesaSelectata:
                                 if nod in stare_curenta.tabla_joc.pieseOi:
+                                    # deselectam oaie
                                     if nodOaieSelectata == nod:
                                         nodOaieSelectata = False
-                                    else:
+                                    else: # selectam oaie de capturat
                                         nodOaieSelectata = nod
-                        # print(tabla_curenta)
                         deseneazaEcranJoc()
                         break
+        # daca am ajuns la finalul jocului
         if afis_daca_final(stare_curenta):
             break
     else:  # jucatorul e JMAX (calculatorul)
