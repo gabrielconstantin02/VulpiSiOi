@@ -37,6 +37,10 @@ def afis_daca_final(stare_curenta):
     final = stare_curenta.tabla_joc.final()
     if final:
         print("A castigat " + final)
+        if final == "v":
+            marcheaza_vulpi()
+        else:
+            marcheaza_oi()
         return True
 
     return False
@@ -210,7 +214,6 @@ class Joc:
         # daca au ramas oi mai putine de 9
         if len(self.pieseOi) < 9:
             rez = "v"
-            marcheaza_vulpi()
         # daca am umplut patratul de sus
         if numara_piese_in_patrat(self.pieseOi, self.pieseVulpi) == 9:
             posibilitate_captura = False
@@ -221,7 +224,6 @@ class Joc:
             # daca in patratul de sus nu exista vulpi care sa ne poate captura oile
             if not posibilitate_captura:
                 rez = "o"
-                marcheaza_oi()
         if rez:
             return rez
         else:
