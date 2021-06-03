@@ -464,6 +464,9 @@ def alpha_beta(alpha, beta, stare):
     if stare.j_curent == Joc.JMAX:
         estimare_curenta = float('-inf')
 
+        # sortare descrescatoare dupa scor
+        stare.mutari_posibile = sorted(stare.mutari_posibile, key=lambda x: x.tabla_joc.estimeaza_scor(stare.adancime, estimare), reverse=True)
+
         for mutare in stare.mutari_posibile:
             # calculeaza estimarea pentru starea noua, realizand subarborele
             stare_noua = alpha_beta(alpha, beta, mutare)
@@ -477,6 +480,10 @@ def alpha_beta(alpha, beta, stare):
                     break
 
     elif stare.j_curent == Joc.JMIN:
+
+        # sortare crescatoare dupa scor
+        stare.mutari_posibile = sorted(stare.mutari_posibile, key=lambda x: x.tabla_joc.estimeaza_scor(stare.adancime, estimare))
+
         estimare_curenta = float('inf')
 
         for mutare in stare.mutari_posibile:
